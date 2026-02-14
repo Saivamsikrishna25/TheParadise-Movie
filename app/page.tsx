@@ -321,7 +321,7 @@ export default function Home() {
           <div className="relative mb-4">
             {!logoError ? (
               <img 
-                src="/TheParadiseLogo.png" 
+                src="/TheParadiseLogo.jpg" 
                 alt="The Paradise Logo" 
                 className="w-64 h-auto sm:w-80 md:w-96 lg:w-[450px] mx-auto drop-shadow-[0_0_50px_rgba(239,68,68,0.8)] animate-pulse-glow object-contain"
                 onError={() => setLogoError(true)}
