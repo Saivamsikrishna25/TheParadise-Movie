@@ -177,10 +177,10 @@ export default function Home() {
       ====================================================== */}
       <button
         onClick={() => setShowMobileMenu(!showMobileMenu)}
-        className="fixed top-6 left-6 z-[70] bg-gradient-to-br from-red-600/90 to-red-800/90 backdrop-blur-md border-2 border-red-400/30 rounded-xl p-4 hover:from-red-500 hover:to-red-700 transition-all duration-300 shadow-lg shadow-red-900/50 hover:shadow-red-500/50 hover:scale-110 group"
+        className="fixed top-4 left-4 md:top-6 md:left-6 z-[70] bg-gradient-to-br from-red-600/90 to-red-800/90 backdrop-blur-md border-2 border-red-400/30 rounded-xl p-3 md:p-4 hover:from-red-500 hover:to-red-700 transition-all duration-300 shadow-lg shadow-red-900/50 hover:shadow-red-500/50 hover:scale-110 group"
         aria-label="Menu"
       >
-        <div className="flex flex-col gap-1.5 w-6">
+        <div className="flex flex-col gap-1.5 w-5 md:w-6">
           <span className={`h-0.5 bg-white rounded-full transition-all duration-300 ${showMobileMenu ? "rotate-45 translate-y-2" : "w-full"}`}></span>
           <span className={`h-0.5 bg-white rounded-full transition-all duration-300 ${showMobileMenu ? "opacity-0 w-0" : "w-5/6 ml-auto"}`}></span>
           <span className={`h-0.5 bg-white rounded-full transition-all duration-300 ${showMobileMenu ? "-rotate-45 -translate-y-2" : "w-full"}`}></span>
@@ -318,56 +318,38 @@ export default function Home() {
         {/* Animated Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90 animate-gradientShift"></div>
         
-        {/* Flying Crow Animation */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="crow-container">
-            <svg className="crow" width="60" height="40" viewBox="0 0 60 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Crow body */}
-              <ellipse cx="30" cy="20" rx="8" ry="6" fill="#1a1a1a"/>
-              {/* Crow head */}
-              <circle cx="35" cy="18" r="4" fill="#1a1a1a"/>
-              {/* Crow beak */}
-              <path d="M39 18 L43 18 L41 19 Z" fill="#FFA500"/>
-              {/* Crow eye */}
-              <circle cx="36" cy="17" r="0.8" fill="#ffffff"/>
-              {/* Left wing */}
-              <path className="wing-left" d="M22 18 Q18 15 15 18 Q18 20 22 20 Z" fill="#1a1a1a"/>
-              {/* Right wing */}
-              <path className="wing-right" d="M38 18 Q42 15 45 18 Q42 20 38 20 Z" fill="#1a1a1a"/>
-              {/* Tail */}
-              <path d="M22 22 L20 26 L22 24 L24 26 L22 22 Z" fill="#1a1a1a"/>
-            </svg>
-          </div>
-        </div>
-        
         <div className="relative min-h-screen flex flex-col justify-center items-center text-center px-4 text-white">
-          {/* Movie Logo */}
-          <div className="relative">
-            <img src="/TheParadiseLogo.png" alt="The Paradise Logo" className="w-150 h-64 mx-auto drop-shadow-[0_0_50px_rgba(239,68,68,0.8)] animate-pulse-glow" />
+          {/* Movie Logo - FIXED FOR VISIBILITY */}
+          <div className="relative mb-4">
+            <img 
+              src="/TheParadiseLogo.png" 
+              alt="The Paradise Logo" 
+              className="w-64 h-auto sm:w-80 md:w-96 lg:w-[450px] mx-auto drop-shadow-[0_0_50px_rgba(239,68,68,0.8)] animate-pulse-glow object-contain" 
+            />
           </div>
 
           {/* Tagline */}
-          <p className="mt-1 text-xl md:text-3xl text-gray-300 animate-fadeInUp font-light tracking-wider" style={{ animationDelay: "0.2s" }}>
-              WELCOME to the WORLD of THE PARADISE
+          <p className="mt-4 text-base sm:text-lg md:text-2xl lg:text-3xl text-gray-300 animate-fadeInUp font-light tracking-wider px-4" style={{ animationDelay: "0.2s" }}>
+            WELCOME to the WORLD of THE PARADISE
           </p>
 
           {/* Release Date Badge */}
-          <div className="mt-6 px-8 py-3 bg-gradient-to-r from-red-600/30 to-orange-600/30 border-2 border-red-500/50 rounded-full backdrop-blur-sm animate-fadeInUp shadow-lg shadow-red-500/20" style={{ animationDelay: "0.3s" }}>
-            <p className="text-sm md:text-base text-red-400 font-bold tracking-wide flex items-center gap-2">
-              <span className="text-xl">🎬</span>
-              Worldwide Release: August 21, 2026
+          <div className="mt-6 px-4 sm:px-8 py-3 bg-gradient-to-r from-red-600/30 to-orange-600/30 border-2 border-red-500/50 rounded-full backdrop-blur-sm animate-fadeInUp shadow-lg shadow-red-500/20" style={{ animationDelay: "0.3s" }}>
+            <p className="text-xs sm:text-sm md:text-base text-red-400 font-bold tracking-wide flex items-center gap-2">
+              <span className="text-lg sm:text-xl">🎬</span>
+              <span className="whitespace-nowrap">Worldwide Release: August 21, 2026</span>
             </p>
           </div>
 
           {/* Countdown Cards */}
-          <div className="mt-12 grid grid-cols-2 sm:flex gap-4 md:gap-6 animate-fadeInUp" style={{ animationDelay: "0.4s" }}>
+          <div className="mt-8 sm:mt-12 grid grid-cols-2 sm:flex gap-3 sm:gap-4 md:gap-6 animate-fadeInUp px-2" style={{ animationDelay: "0.4s" }}>
             {Object.entries(timeLeft).map(([label, value], index) => (
               <div
                 key={label}
-                className="bg-gradient-to-br from-black/70 to-red-950/30 backdrop-blur-md border-2 border-red-500/30 rounded-2xl px-6 py-5 text-center hover:scale-110 transition-all duration-300 hover:border-red-500 hover:shadow-2xl hover:shadow-red-500/40 group cursor-pointer"
+                className="bg-gradient-to-br from-black/70 to-red-950/30 backdrop-blur-md border-2 border-red-500/30 rounded-2xl px-4 sm:px-6 py-4 sm:py-5 text-center hover:scale-105 sm:hover:scale-110 transition-all duration-300 hover:border-red-500 hover:shadow-2xl hover:shadow-red-500/40 group cursor-pointer"
                 style={{ animationDelay: `${0.5 + index * 0.1}s` }}
               >
-                <p className="text-4xl md:text-5xl font-black group-hover:text-red-500 transition-colors duration-300 tabular-nums">
+                <p className="text-3xl sm:text-4xl md:text-5xl font-black group-hover:text-red-500 transition-colors duration-300 tabular-nums">
                   {value}
                 </p>
                 <span className="text-xs uppercase text-gray-400 tracking-widest font-semibold mt-1 block group-hover:text-red-400 transition-colors">
@@ -378,26 +360,26 @@ export default function Home() {
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-14 flex gap-8 flex-col sm:flex-row animate-fadeInUp" style={{ animationDelay: "0.9s" }}>
+          <div className="mt-10 sm:mt-14 flex gap-4 sm:gap-8 flex-col sm:flex-row animate-fadeInUp px-4 w-full max-w-2xl" style={{ animationDelay: "0.9s" }}>
             <button
               onClick={() => openVideosModal("glimpses")}
-              className="relative flex items-center justify-center gap-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 transition-all px-10 py-5 rounded-full font-bold shadow-2xl hover:scale-110 transform overflow-hidden group border-2 border-red-500/50 hover:border-red-400"
+              className="relative flex items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 transition-all px-6 sm:px-10 py-4 sm:py-5 rounded-full font-bold shadow-2xl hover:scale-105 sm:hover:scale-110 transform overflow-hidden group border-2 border-red-500/50 hover:border-red-400 w-full sm:w-auto text-sm sm:text-base"
             >
               <span className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
-              <svg className="w-6 h-6 relative group-hover:scale-125 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 relative group-hover:scale-125 transition-transform" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
               </svg>
-              <span className="relative text-lg">WATCH VIDEOS</span>
+              <span className="relative text-base sm:text-lg">WATCH VIDEOS</span>
             </button>
 
             <button
               onClick={addToCalendar}
-              className="relative flex items-center justify-center gap-3 border-2 border-red-500/50 hover:border-red-500 bg-black/30 hover:bg-red-500/20 transition-all px-10 py-5 rounded-full font-bold hover:scale-110 transform group backdrop-blur-sm shadow-xl hover:shadow-2xl hover:shadow-red-500/30"
+              className="relative flex items-center justify-center gap-2 sm:gap-3 border-2 border-red-500/50 hover:border-red-500 bg-black/30 hover:bg-red-500/20 transition-all px-6 sm:px-10 py-4 sm:py-5 rounded-full font-bold hover:scale-105 sm:hover:scale-110 transform group backdrop-blur-sm shadow-xl hover:shadow-2xl hover:shadow-red-500/30 w-full sm:w-auto text-sm sm:text-base"
             >
-              <svg className="w-6 h-6 group-hover:scale-125 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-125 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className="text-lg">Add Reminder</span>
+              <span className="text-base sm:text-lg">Add Reminder</span>
             </button>
           </div>
         </div>
@@ -1088,56 +1070,6 @@ export default function Home() {
       opacity: 1;
       transform: translateY(0);
     }
-  }
-
-  /* Crow Flying Animation */
-  @keyframes crowFly {
-    0% {
-      transform: translateX(-100px) translateY(20vh);
-      opacity: 0;
-    }
-    10% {
-      opacity: 1;
-    }
-    90% {
-      opacity: 1;
-    }
-    100% {
-      transform: translateX(calc(100vw + 100px)) translateY(10vh);
-      opacity: 0;
-    }
-  }
-
-  @keyframes wingFlap {
-    0%, 100% {
-      transform: rotateX(0deg);
-    }
-    50% {
-      transform: rotateX(-25deg);
-    }
-  }
-
-  .crow-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    animation: crowFly 25s linear infinite;
-  }
-
-  .crow {
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
-  }
-
-  .wing-left,
-  .wing-right {
-    transform-origin: center;
-    animation: wingFlap 0.4s ease-in-out infinite;
-  }
-
-  .wing-right {
-    animation-delay: 0.2s;
   }
 
   .animate-fadeIn {
