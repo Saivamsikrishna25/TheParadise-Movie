@@ -87,20 +87,45 @@ export default function Home() {
     setPlayingVideoId(null);
   };
 
-  /* ================= HANDLE VIDEO PLAY ================= */
+  /* ================= HANDLE VIDEO PLAY - FIXED ================= */
   const handleVideoPlay = (videoId: string) => {
-    if (playingVideoId && playingVideoId !== videoId) {
-      // Pause the currently playing video
-      const currentVideo = videoRefs.current[playingVideoId];
-      if (currentVideo && currentVideo.contentWindow) {
-        currentVideo.contentWindow.postMessage(
+    // Pause all other videos first
+    Object.entries(videoRefs.current).forEach(([id, iframe]) => {
+      if (id !== videoId && iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage(
           '{"event":"command","func":"pauseVideo","args":""}',
           '*'
         );
       }
-    }
+    });
     setPlayingVideoId(videoId);
   };
+
+  /* ================= LISTEN FOR YOUTUBE PLAYER STATE CHANGES ================= */
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Listen for YouTube player events
+      if (event.data && typeof event.data === 'string') {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === 'onStateChange' && data.info === 1) {
+            // Player is playing (state 1)
+            // Find which iframe sent this message and update playingVideoId
+            Object.entries(videoRefs.current).forEach(([id, iframe]) => {
+              if (iframe?.contentWindow === event.source) {
+                handleVideoPlay(id);
+              }
+            });
+          }
+        } catch (e) {
+          // Ignore parsing errors
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   /* ================= COUNTDOWN LOGIC ================= */
   useEffect(() => {
@@ -378,7 +403,7 @@ export default function Home() {
       </nav>
 
       {/* ======================================================
-         HERO SECTION - MOBILE RESPONSIVE
+         HERO SECTION - MOBILE RESPONSIVE - FIXED LOGO SIZE & BUTTON CENTERING
       ====================================================== */}
       <section
         id="home"
@@ -387,18 +412,18 @@ export default function Home() {
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90 animate-gradientShift"></div>
 
-        <div className="relative min-h-screen flex flex-col justify-center items-center text-center px-3 sm:px-4 text-white pt-16 sm:pt-20">
-          {/* Movie Logo with Fallback */}
-          <div className="relative mb-3 sm:mb-4">
+        <div className="relative min-h-screen flex flex-col justify-center items-center text-center px-3 sm:px-4 text-white pt-0">
+          {/* Movie Logo with Fallback - FIXED SIZE AND POSITION */}
+          <div className="relative mb-6 sm:mb-8 md:mb-10">
             {!logoError ? (
               <img
                 src="/TheParadiselogo.jpg"
                 alt="The Paradise Logo"
-                className="w-48 h-auto sm:w-64 md:w-80 lg:w-96 xl:w-[450px] mx-auto drop-shadow-[0_0_50px_rgba(239,68,68,0.8)] animate-pulse-glow object-contain"
+                className="w-64 h-auto sm:w-80 md:w-[450px] lg:w-[550px] xl:w-[650px] mx-auto drop-shadow-[0_0_50px_rgba(239,68,68,0.8)] animate-pulse-glow object-contain"
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black bg-gradient-to-r from-red-500 via-orange-500 to-red-600 bg-clip-text text-transparent drop-shadow-[0_0_50px_rgba(239,68,68,0.8)] animate-pulse-glow tracking-wider">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black bg-gradient-to-r from-red-500 via-orange-500 to-red-600 bg-clip-text text-transparent drop-shadow-[0_0_50px_rgba(239,68,68,0.8)] animate-pulse-glow tracking-wider">
                 THE PARADISE
               </h1>
             )}
@@ -443,8 +468,9 @@ export default function Home() {
             ))}
           </div>
 
+          {/* FIXED BUTTON CENTERING - Added justify-center for desktop */}
           <div
-            className="mt-8 sm:mt-10 md:mt-14 flex gap-3 sm:gap-4 md:gap-8 flex-col sm:flex-row animate-fadeInUp px-3 sm:px-4 w-full max-w-2xl"
+            className="mt-8 sm:mt-10 md:mt-14 flex gap-3 sm:gap-4 md:gap-8 flex-col sm:flex-row justify-center animate-fadeInUp px-3 sm:px-4 w-full max-w-2xl"
             style={{ animationDelay: "0.9s" }}
           >
             <button
@@ -608,10 +634,10 @@ export default function Home() {
                           <iframe
                             ref={(el) => { videoRefs.current[videoId] = el; }}
                             className="w-full h-full"
-                            src={`${video.url}${video.url.includes('?') ? '&' : '?'}enablejsapi=1`}
+                            src={`${video.url}?enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
                             allowFullScreen
                             title={video.title}
-                            onPlay={() => handleVideoPlay(videoId)}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           />
                         </div>
                         <div className="p-3 sm:p-4">
@@ -651,9 +677,9 @@ export default function Home() {
               <iframe
                 ref={(el) => { videoRefs.current['main-trailer'] = el; }}
                 className="w-full h-full"
-                src="https://www.youtube-nocookie.com/embed/6B2T6prycwk?si=zn7x1qS-a7SXeE01&enablejsapi=1"
+                src={`https://www.youtube-nocookie.com/embed/6B2T6prycwk?si=zn7x1qS-a7SXeE01&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
                 allowFullScreen
-                onPlay={() => handleVideoPlay('main-trailer')}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               />
             </div>
           </div>
@@ -916,10 +942,10 @@ export default function Home() {
                           <iframe
                             ref={(el) => { videoRefs.current[videoId] = el; }}
                             className="w-full h-full"
-                            src={`${video.url}${video.url.includes('?') ? '&' : '?'}enablejsapi=1`}
+                            src={`${video.url}?enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
                             allowFullScreen
                             title={video.title}
-                            onPlay={() => handleVideoPlay(videoId)}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           />
                         </div>
                       </div>
@@ -986,21 +1012,21 @@ export default function Home() {
       ====================================================== */}
       {showReviews && (
         <div
-          className="fixed inset-0 z-[90] flex items-center justify-center p-2 sm:p-4 bg-black/95 backdrop-blur-xl animate-fadeIn overflow-y-auto"
+          className="fixed inset-0 z-[90] flex items-start sm:items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-xl animate-fadeIn overflow-y-auto"
           onClick={() => setShowReviews(false)}
         >
           <div
-            className="bg-gradient-to-br from-red-950/40 to-black rounded-2xl sm:rounded-3xl max-w-6xl w-full max-h-[95vh] overflow-hidden border-2 border-red-500/30 shadow-2xl shadow-red-900/50 animate-modalSlideUp my-4 sm:my-8"
+            className="bg-gradient-to-br from-red-950/40 to-black rounded-none sm:rounded-2xl md:rounded-3xl max-w-6xl w-full min-h-screen sm:min-h-0 sm:max-h-[95vh] overflow-hidden border-0 sm:border-2 border-red-500/30 shadow-2xl shadow-red-900/50 animate-modalSlideUp"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
-            <div className="relative bg-gradient-to-r from-red-600/20 via-orange-600/20 to-red-600/20 border-b border-red-500/30 p-4 sm:p-6">
+            {/* Modal Header - Mobile Optimized */}
+            <div className="sticky top-0 z-10 bg-gradient-to-r from-red-600/20 via-orange-600/20 to-red-600/20 border-b border-red-500/30 p-3 sm:p-4 md:p-6">
               <button
                 onClick={() => setShowReviews(false)}
-                className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 sm:w-10 sm:h-10 bg-red-600/80 hover:bg-red-600 rounded-full flex items-center justify-center transition-all backdrop-blur-sm border-2 border-red-400/50 hover:scale-110 hover:rotate-90"
+                className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-red-600/90 hover:bg-red-600 rounded-full flex items-center justify-center transition-all backdrop-blur-sm border-2 border-red-400/50 hover:scale-110 hover:rotate-90 z-20"
               >
                 <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                  className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -1014,53 +1040,53 @@ export default function Home() {
                 </svg>
               </button>
 
-              <div className="text-center pr-8">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2 sm:mb-3 flex items-center justify-center gap-2 sm:gap-3">
-                  <span className="text-3xl sm:text-4xl">🔥</span>
+              <div className="text-center pr-10 sm:pr-12">
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white mb-2 sm:mb-3 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
+                  <span className="text-2xl sm:text-3xl md:text-4xl">🔥</span>
                   <span>HYPE METER</span>
-                  <span className="text-3xl sm:text-4xl">🔥</span>
+                  <span className="text-2xl sm:text-3xl md:text-4xl">🔥</span>
                 </h2>
-                <p className="text-gray-300 text-sm sm:text-lg mb-3 sm:mb-4 px-2">
+                <p className="text-gray-300 text-xs sm:text-sm md:text-base lg:text-lg mb-2 sm:mb-3 md:mb-4 px-2">
                   What are fans saying about THE PARADISE?
                 </p>
 
                 {/* Average Rating Display - Mobile Optimized */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 bg-black/30 backdrop-blur-sm rounded-2xl p-3 sm:p-4 border border-red-500/30 max-w-2xl mx-auto">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 md:gap-6 bg-black/30 backdrop-blur-sm rounded-xl sm:rounded-2xl p-2.5 sm:p-3 md:p-4 border border-red-500/30 max-w-2xl mx-auto">
                   <div className="text-center">
-                    <div className="text-4xl sm:text-5xl font-black text-white mb-1">
+                    <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-0.5 sm:mb-1">
                       {averageRating}
                     </div>
-                    <div className="flex gap-0.5 sm:gap-1 justify-center mb-1">
+                    <div className="flex gap-0.5 sm:gap-1 justify-center mb-0.5 sm:mb-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <span
                           key={star}
-                          className={`text-lg sm:text-2xl ${parseFloat(averageRating) >= star ? "text-yellow-400" : "text-gray-600"}`}
+                          className={`text-sm sm:text-lg md:text-2xl ${parseFloat(averageRating) >= star ? "text-yellow-400" : "text-gray-600"}`}
                         >
                           ⭐
                         </span>
                       ))}
                     </div>
-                    <p className="text-gray-400 text-xs sm:text-sm">
+                    <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm">
                       Average Rating
                     </p>
                   </div>
-                  <div className="hidden sm:block h-16 w-px bg-red-500/30"></div>
-                  <div className="sm:hidden w-16 h-px bg-red-500/30"></div>
+                  <div className="hidden sm:block h-12 md:h-16 w-px bg-red-500/30"></div>
+                  <div className="sm:hidden w-12 h-px bg-red-500/30"></div>
                   <div className="text-center">
-                    <div className="text-4xl sm:text-5xl font-black text-white mb-1">
+                    <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-0.5 sm:mb-1">
                       {reviews.length}
                     </div>
-                    <p className="text-gray-400 text-xs sm:text-sm">
+                    <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm">
                       Total Reviews
                     </p>
                   </div>
-                  <div className="hidden sm:block h-16 w-px bg-red-500/30"></div>
-                  <div className="sm:hidden w-16 h-px bg-red-500/30"></div>
+                  <div className="hidden sm:block h-12 md:h-16 w-px bg-red-500/30"></div>
+                  <div className="sm:hidden w-12 h-px bg-red-500/30"></div>
                   <div className="text-center">
-                    <div className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent mb-1">
+                    <div className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent mb-0.5 sm:mb-1">
                       {reviews.filter((r) => r.rating >= 4).length}
                     </div>
-                    <p className="text-gray-400 text-xs sm:text-sm">
+                    <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm">
                       Hyped Fans! 🎉
                     </p>
                   </div>
@@ -1068,19 +1094,19 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Modal Body - Mobile Optimized */}
-            <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(95vh-250px)] sm:max-h-[calc(95vh-280px)]">
-              <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-                {/* Left Side - Submit Review */}
-                <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-red-500/30">
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                    <span className="text-2xl sm:text-3xl">✍️</span>
+            {/* Modal Body - Mobile Optimized with Proper Scrolling */}
+            <div className="p-3 sm:p-4 md:p-6 overflow-y-auto h-[calc(100vh-200px)] sm:h-auto sm:max-h-[calc(95vh-280px)]">
+              <div className="grid lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+                {/* Left Side - Submit Review - Mobile Optimized */}
+                <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 border-2 border-red-500/30">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-xl sm:text-2xl md:text-3xl">✍️</span>
                     Share Your Hype!
                   </h3>
 
-                  <div className="space-y-3 sm:space-y-4">
+                  <div className="space-y-2.5 sm:space-y-3 md:space-y-4">
                     <div>
-                      <label className="block text-gray-300 text-xs sm:text-sm font-semibold mb-2">
+                      <label className="block text-gray-300 text-[11px] sm:text-xs md:text-sm font-semibold mb-1.5 sm:mb-2">
                         Your Name
                       </label>
                       <input
@@ -1088,22 +1114,22 @@ export default function Home() {
                         value={userName}
                         onChange={(e) => setUserName(e.target.value)}
                         placeholder="Enter your name..."
-                        className="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition"
+                        className="w-full bg-black/50 border-2 border-red-500/30 rounded-lg sm:rounded-xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-gray-300 text-xs sm:text-sm font-semibold mb-2">
+                      <label className="block text-gray-300 text-[11px] sm:text-xs md:text-sm font-semibold mb-1.5 sm:mb-2">
                         Your Rating
                       </label>
-                      <div className="flex gap-1 sm:gap-2">
+                      <div className="flex gap-1 sm:gap-1.5 md:gap-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
                             onClick={() => setUserRating(star)}
                             onMouseEnter={() => setHoverRating(star)}
                             onMouseLeave={() => setHoverRating(0)}
-                            className="text-3xl sm:text-4xl transition-transform hover:scale-125"
+                            className="text-2xl sm:text-3xl md:text-4xl transition-transform active:scale-125 sm:hover:scale-125"
                           >
                             <span
                               className={
@@ -1118,7 +1144,7 @@ export default function Home() {
                         ))}
                       </div>
                       {userRating > 0 && (
-                        <p className="text-red-400 text-xs sm:text-sm mt-2 font-semibold">
+                        <p className="text-red-400 text-[10px] sm:text-xs md:text-sm mt-1.5 sm:mt-2 font-semibold">
                           {userRating === 5
                             ? "🔥 Maximum Hype!"
                             : userRating === 4
@@ -1133,24 +1159,24 @@ export default function Home() {
                     </div>
 
                     <div>
-                      <label className="block text-gray-300 text-xs sm:text-sm font-semibold mb-2">
+                      <label className="block text-gray-300 text-[11px] sm:text-xs md:text-sm font-semibold mb-1.5 sm:mb-2">
                         Your Review
                       </label>
                       <textarea
                         value={reviewText}
                         onChange={(e) => setReviewText(e.target.value)}
                         placeholder="What are you most excited about? Share your thoughts..."
-                        rows={4}
-                        className="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition resize-none"
+                        rows={3}
+                        className="w-full bg-black/50 border-2 border-red-500/30 rounded-lg sm:rounded-xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition resize-none"
                       />
                     </div>
 
                     <button
                       onClick={submitReview}
-                      className="w-full group relative bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl font-bold transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-red-500/50 border-2 border-red-400/50 overflow-hidden"
+                      className="w-full group relative bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 active:from-red-700 active:to-orange-700 text-white px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-bold transition-all duration-300 active:scale-95 sm:hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-red-500/50 border-2 border-red-400/50 overflow-hidden"
                     >
                       <span className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
-                      <span className="relative flex items-center justify-center gap-2 text-base sm:text-lg">
+                      <span className="relative flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base md:text-lg">
                         <span>🚀</span>
                         Submit Your Hype!
                       </span>
@@ -1158,39 +1184,40 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Right Side - Reviews List */}
-                <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-red-500/30">
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
-                    <span className="text-2xl sm:text-3xl">💬</span>
+                {/* Right Side - Reviews List - Mobile Optimized */}
+                <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 border-2 border-red-500/30">
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-xl sm:text-2xl md:text-3xl">💬</span>
                     Fan Reviews ({reviews.length})
                   </h3>
 
-                  <div className="space-y-3 sm:space-y-4 max-h-[300px] sm:max-h-[600px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
+                  {/* Mobile: Shorter scroll, Desktop: Taller scroll */}
+                  <div className="space-y-2 sm:space-y-3 md:space-y-4 max-h-[250px] sm:max-h-[400px] md:max-h-[600px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
                     {reviews.map((review) => (
                       <div
                         key={review.id}
-                        className="bg-black/40 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-red-500/20 hover:border-red-500/50 transition-all hover:scale-[1.02] group"
+                        className="bg-black/40 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-red-500/20 hover:border-red-500/50 transition-all active:scale-[0.98] sm:hover:scale-[1.02] group"
                       >
-                        <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
+                        <div className="flex items-start gap-2 sm:gap-3 mb-1.5 sm:mb-2 md:mb-3">
                           <img
                             src={review.avatar}
                             alt={review.name}
-                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-red-500/30 group-hover:border-red-500 transition flex-shrink-0"
+                            className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full border-2 border-red-500/30 group-hover:border-red-500 transition flex-shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1 gap-2">
-                              <h4 className="font-bold text-sm sm:text-base text-white group-hover:text-red-400 transition truncate">
+                            <div className="flex items-center justify-between mb-0.5 sm:mb-1 gap-1 sm:gap-2">
+                              <h4 className="font-bold text-xs sm:text-sm md:text-base text-white group-hover:text-red-400 transition truncate">
                                 {review.name}
                               </h4>
-                              <span className="text-xs text-gray-500 whitespace-nowrap">
+                              <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap flex-shrink-0">
                                 {review.date}
                               </span>
                             </div>
-                            <div className="flex gap-0.5 mb-2">
+                            <div className="flex gap-0.5 mb-1 sm:mb-2">
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <span
                                   key={star}
-                                  className={`text-xs sm:text-sm ${star <= review.rating ? "text-yellow-400" : "text-gray-600"}`}
+                                  className={`text-[10px] sm:text-xs md:text-sm ${star <= review.rating ? "text-yellow-400" : "text-gray-600"}`}
                                 >
                                   ⭐
                                 </span>
@@ -1198,18 +1225,18 @@ export default function Home() {
                             </div>
                           </div>
                         </div>
-                        <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
+                        <p className="text-gray-300 text-[11px] sm:text-xs md:text-sm leading-relaxed">
                           {review.review}
                         </p>
                       </div>
                     ))}
 
                     {reviews.length === 0 && (
-                      <div className="text-center py-8 sm:py-12">
-                        <span className="text-5xl sm:text-6xl mb-3 sm:mb-4 block">
+                      <div className="text-center py-6 sm:py-8 md:py-12">
+                        <span className="text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 md:mb-4 block">
                           🎬
                         </span>
-                        <p className="text-gray-400 text-base sm:text-lg">
+                        <p className="text-gray-400 text-sm sm:text-base md:text-lg">
                           Be the first to share your hype!
                         </p>
                       </div>
@@ -1221,247 +1248,6 @@ export default function Home() {
           </div>
         </div>
       )}
-      {/* ======================================================
-   HYPE METER MODAL - FULLY MOBILE OPTIMIZED
-====================================================== */}
-{showReviews && (
-  <div
-    className="fixed inset-0 z-[90] flex items-start sm:items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-xl animate-fadeIn overflow-y-auto"
-    onClick={() => setShowReviews(false)}
-  >
-    <div
-      className="bg-gradient-to-br from-red-950/40 to-black rounded-none sm:rounded-2xl md:rounded-3xl max-w-6xl w-full min-h-screen sm:min-h-0 sm:max-h-[95vh] overflow-hidden border-0 sm:border-2 border-red-500/30 shadow-2xl shadow-red-900/50 animate-modalSlideUp"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* Modal Header - Mobile Optimized */}
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-red-600/20 via-orange-600/20 to-red-600/20 border-b border-red-500/30 p-3 sm:p-4 md:p-6">
-        <button
-          onClick={() => setShowReviews(false)}
-          className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-red-600/90 hover:bg-red-600 rounded-full flex items-center justify-center transition-all backdrop-blur-sm border-2 border-red-400/50 hover:scale-110 hover:rotate-90 z-20"
-        >
-          <svg
-            className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-
-        <div className="text-center pr-10 sm:pr-12">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white mb-2 sm:mb-3 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
-            <span className="text-2xl sm:text-3xl md:text-4xl">🔥</span>
-            <span>HYPE METER</span>
-            <span className="text-2xl sm:text-3xl md:text-4xl">🔥</span>
-          </h2>
-          <p className="text-gray-300 text-xs sm:text-sm md:text-base lg:text-lg mb-2 sm:mb-3 md:mb-4 px-2">
-            What are fans saying about THE PARADISE?
-          </p>
-
-          {/* Average Rating Display - Mobile Optimized */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 md:gap-6 bg-black/30 backdrop-blur-sm rounded-xl sm:rounded-2xl p-2.5 sm:p-3 md:p-4 border border-red-500/30 max-w-2xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-0.5 sm:mb-1">
-                {averageRating}
-              </div>
-              <div className="flex gap-0.5 sm:gap-1 justify-center mb-0.5 sm:mb-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <span
-                    key={star}
-                    className={`text-sm sm:text-lg md:text-2xl ${parseFloat(averageRating) >= star ? "text-yellow-400" : "text-gray-600"}`}
-                  >
-                    ⭐
-                  </span>
-                ))}
-              </div>
-              <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm">
-                Average Rating
-              </p>
-            </div>
-            <div className="hidden sm:block h-12 md:h-16 w-px bg-red-500/30"></div>
-            <div className="sm:hidden w-12 h-px bg-red-500/30"></div>
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-0.5 sm:mb-1">
-                {reviews.length}
-              </div>
-              <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm">
-                Total Reviews
-              </p>
-            </div>
-            <div className="hidden sm:block h-12 md:h-16 w-px bg-red-500/30"></div>
-            <div className="sm:hidden w-12 h-px bg-red-500/30"></div>
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent mb-0.5 sm:mb-1">
-                {reviews.filter((r) => r.rating >= 4).length}
-              </div>
-              <p className="text-gray-400 text-[10px] sm:text-xs md:text-sm">
-                Hyped Fans! 🎉
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Modal Body - Mobile Optimized with Proper Scrolling */}
-      <div className="p-3 sm:p-4 md:p-6 overflow-y-auto h-[calc(100vh-200px)] sm:h-auto sm:max-h-[calc(95vh-280px)]">
-        <div className="grid lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-          {/* Left Side - Submit Review - Mobile Optimized */}
-          <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 border-2 border-red-500/30">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
-              <span className="text-xl sm:text-2xl md:text-3xl">✍️</span>
-              Share Your Hype!
-            </h3>
-
-            <div className="space-y-2.5 sm:space-y-3 md:space-y-4">
-              <div>
-                <label className="block text-gray-300 text-[11px] sm:text-xs md:text-sm font-semibold mb-1.5 sm:mb-2">
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  placeholder="Enter your name..."
-                  className="w-full bg-black/50 border-2 border-red-500/30 rounded-lg sm:rounded-xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-300 text-[11px] sm:text-xs md:text-sm font-semibold mb-1.5 sm:mb-2">
-                  Your Rating
-                </label>
-                <div className="flex gap-1 sm:gap-1.5 md:gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      onClick={() => setUserRating(star)}
-                      onMouseEnter={() => setHoverRating(star)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      className="text-2xl sm:text-3xl md:text-4xl transition-transform active:scale-125 sm:hover:scale-125"
-                    >
-                      <span
-                        className={
-                          star <= (hoverRating || userRating)
-                            ? "text-yellow-400"
-                            : "text-gray-600"
-                        }
-                      >
-                        ⭐
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                {userRating > 0 && (
-                  <p className="text-red-400 text-[10px] sm:text-xs md:text-sm mt-1.5 sm:mt-2 font-semibold">
-                    {userRating === 5
-                      ? "🔥 Maximum Hype!"
-                      : userRating === 4
-                        ? "🎉 Super Excited!"
-                        : userRating === 3
-                          ? "👍 Looking Good!"
-                          : userRating === 2
-                            ? "🤔 Somewhat Interested"
-                            : "😐 Not Sure Yet"}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-gray-300 text-[11px] sm:text-xs md:text-sm font-semibold mb-1.5 sm:mb-2">
-                  Your Review
-                </label>
-                <textarea
-                  value={reviewText}
-                  onChange={(e) => setReviewText(e.target.value)}
-                  placeholder="What are you most excited about? Share your thoughts..."
-                  rows={3}
-                  className="w-full bg-black/50 border-2 border-red-500/30 rounded-lg sm:rounded-xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition resize-none"
-                />
-              </div>
-
-              <button
-                onClick={submitReview}
-                className="w-full group relative bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 active:from-red-700 active:to-orange-700 text-white px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-bold transition-all duration-300 active:scale-95 sm:hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-red-500/50 border-2 border-red-400/50 overflow-hidden"
-              >
-                <span className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
-                <span className="relative flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base md:text-lg">
-                  <span>🚀</span>
-                  Submit Your Hype!
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Right Side - Reviews List - Mobile Optimized */}
-          <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 border-2 border-red-500/30">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
-              <span className="text-xl sm:text-2xl md:text-3xl">💬</span>
-              Fan Reviews ({reviews.length})
-            </h3>
-
-            {/* Mobile: Shorter scroll, Desktop: Taller scroll */}
-            <div className="space-y-2 sm:space-y-3 md:space-y-4 max-h-[250px] sm:max-h-[400px] md:max-h-[600px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
-              {reviews.map((review) => (
-                <div
-                  key={review.id}
-                  className="bg-black/40 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-red-500/20 hover:border-red-500/50 transition-all active:scale-[0.98] sm:hover:scale-[1.02] group"
-                >
-                  <div className="flex items-start gap-2 sm:gap-3 mb-1.5 sm:mb-2 md:mb-3">
-                    <img
-                      src={review.avatar}
-                      alt={review.name}
-                      className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full border-2 border-red-500/30 group-hover:border-red-500 transition flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5 sm:mb-1 gap-1 sm:gap-2">
-                        <h4 className="font-bold text-xs sm:text-sm md:text-base text-white group-hover:text-red-400 transition truncate">
-                          {review.name}
-                        </h4>
-                        <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap flex-shrink-0">
-                          {review.date}
-                        </span>
-                      </div>
-                      <div className="flex gap-0.5 mb-1 sm:mb-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <span
-                            key={star}
-                            className={`text-[10px] sm:text-xs md:text-sm ${star <= review.rating ? "text-yellow-400" : "text-gray-600"}`}
-                          >
-                            ⭐
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-gray-300 text-[11px] sm:text-xs md:text-sm leading-relaxed">
-                    {review.review}
-                  </p>
-                </div>
-              ))}
-
-              {reviews.length === 0 && (
-                <div className="text-center py-6 sm:py-8 md:py-12">
-                  <span className="text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 md:mb-4 block">
-                    🎬
-                  </span>
-                  <p className="text-gray-400 text-sm sm:text-base md:text-lg">
-                    Be the first to share your hype!
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
 
       {/* ================= CUSTOM STYLES ================= */}
       <style jsx global>{`
