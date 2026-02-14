@@ -430,7 +430,7 @@ export default function Home() {
           </div>
 
           <p
-            className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg lg:text-2xl xl:text-3xl text-gray-300 animate-fadeInUp font-light tracking-wider px-3 sm:px-4"
+            className="mt-3 sm:mt-1 text-sm sm:text-base md:text-lg lg:text-2xl xl:text-3xl text-gray-300 animate-fadeInUp font-light tracking-wider px-3 sm:px-4"
             style={{ animationDelay: "0.2s" }}
           >
             WELCOME to the WORLD of THE PARADISE
@@ -470,7 +470,7 @@ export default function Home() {
 
           {/* FIXED BUTTON CENTERING - Added justify-center for desktop */}
           <div
-            className="mt-8 sm:mt-10 md:mt-14 flex gap-3 sm:gap-4 md:gap-8 flex-col sm:flex-row justify-center animate-fadeInUp px-3 sm:px-4 w-full max-w-2xl"
+            className="mt-8 sm:mt-10 md:mt-14 mb-5 sm:mb-9 md:mb-10 flex gap-3 sm:gap-4 md:gap-8 flex-col sm:flex-row justify-center animate-fadeInUp px-3 sm:px-4 w-full max-w-2xl"
             style={{ animationDelay: "0.9s" }}
           >
             <button
