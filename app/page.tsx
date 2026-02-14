@@ -66,6 +66,7 @@ export default function Home() {
   const [reviewText, setReviewText] = useState("");
   const [userName, setUserName] = useState("");
   const [reviews, setReviews] = useState(initialReviews);
+  const [logoError, setLogoError] = useState(false);
   const audioRef = useRef(null);
 
   /* ================= COUNTDOWN LOGIC ================= */
@@ -191,14 +192,13 @@ export default function Home() {
       </button>
 
       {/* ======================================================
-         ENHANCED MOBILE MENU OVERLAY - FIXED Z-INDEX AND SCROLLING
+         ENHANCED MOBILE MENU OVERLAY
       ====================================================== */}
       <div
         className={`fixed inset-0 z-[60] bg-gradient-to-br from-black via-red-950/30 to-black backdrop-blur-xl transition-all duration-500 overflow-y-auto ${
           showMobileMenu ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
       >
-        {/* Animated background pattern */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-20 left-20 w-72 h-72 bg-red-500 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -228,7 +228,6 @@ export default function Home() {
             </button>
           ))}
 
-          {/* Events Section in Menu */}
           <div className="mt-8 w-full max-w-md">
             <h3 className="text-2xl font-bold text-center mb-4 text-red-500">📅 Quick Updates</h3>
             <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-red-500/30">
@@ -261,7 +260,7 @@ export default function Home() {
       </div>
 
       {/* ======================================================
-         STICKY NAVIGATION BAR (Desktop) - UPDATED Z-INDEX
+         STICKY NAVIGATION BAR (Desktop)
       ====================================================== */}
       <nav
         className={`hidden md:block fixed top-0 left-0 right-0 z-[65] bg-gradient-to-r from-black via-red-950/20 to-black backdrop-blur-xl border-b border-red-500/20 shadow-lg shadow-red-900/20 transition-transform duration-300 ${
@@ -315,25 +314,29 @@ export default function Home() {
         className="min-h-screen bg-fixed bg-center bg-cover relative overflow-hidden"
         style={{ backgroundImage: "url('/BIG_IMAGE.jpg')" }}
       >
-        {/* Animated Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90 animate-gradientShift"></div>
         
         <div className="relative min-h-screen flex flex-col justify-center items-center text-center px-4 text-white">
-          {/* Movie Logo - FIXED FOR VISIBILITY */}
+          {/* Movie Logo with Fallback */}
           <div className="relative mb-4">
-            <img 
-              src="/TheParadiseLogo.png" 
-              alt="The Paradise Logo" 
-              className="w-64 h-auto sm:w-80 md:w-96 lg:w-[450px] mx-auto drop-shadow-[0_0_50px_rgba(239,68,68,0.8)] animate-pulse-glow object-contain" 
-            />
+            {!logoError ? (
+              <img 
+                src="/TheParadiseLogo.png" 
+                alt="The Paradise Logo" 
+                className="w-64 h-auto sm:w-80 md:w-96 lg:w-[450px] mx-auto drop-shadow-[0_0_50px_rgba(239,68,68,0.8)] animate-pulse-glow object-contain"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black bg-gradient-to-r from-red-500 via-orange-500 to-red-600 bg-clip-text text-transparent drop-shadow-[0_0_50px_rgba(239,68,68,0.8)] animate-pulse-glow tracking-wider">
+                THE PARADISE
+              </h1>
+            )}
           </div>
 
-          {/* Tagline */}
           <p className="mt-4 text-base sm:text-lg md:text-2xl lg:text-3xl text-gray-300 animate-fadeInUp font-light tracking-wider px-4" style={{ animationDelay: "0.2s" }}>
             WELCOME to the WORLD of THE PARADISE
           </p>
 
-          {/* Release Date Badge */}
           <div className="mt-6 px-4 sm:px-8 py-3 bg-gradient-to-r from-red-600/30 to-orange-600/30 border-2 border-red-500/50 rounded-full backdrop-blur-sm animate-fadeInUp shadow-lg shadow-red-500/20" style={{ animationDelay: "0.3s" }}>
             <p className="text-xs sm:text-sm md:text-base text-red-400 font-bold tracking-wide flex items-center gap-2">
               <span className="text-lg sm:text-xl">🎬</span>
@@ -341,7 +344,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Countdown Cards */}
           <div className="mt-8 sm:mt-12 grid grid-cols-2 sm:flex gap-3 sm:gap-4 md:gap-6 animate-fadeInUp px-2" style={{ animationDelay: "0.4s" }}>
             {Object.entries(timeLeft).map(([label, value], index) => (
               <div
@@ -359,7 +361,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Action Buttons */}
           <div className="mt-10 sm:mt-14 flex gap-4 sm:gap-8 flex-col sm:flex-row animate-fadeInUp px-4 w-full max-w-2xl" style={{ animationDelay: "0.9s" }}>
             <button
               onClick={() => openVideosModal("glimpses")}
@@ -424,7 +425,7 @@ export default function Home() {
       </FadeInSection>
 
       {/* ======================================================
-         EVENTS AND UPDATES SECTION - SCROLLABLE DESIGN
+         EVENTS AND UPDATES SECTION
       ====================================================== */}
       <FadeInSection>
         <section id="events" className="bg-black text-white py-24 px-6 border-t border-red-500/20">
@@ -437,14 +438,12 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
-              {/* Left Side - Scrollable Events List */}
               <div className="bg-gradient-to-br from-red-950/20 to-black rounded-2xl p-6 border-2 border-red-500/30">
                 <h3 className="text-2xl font-bold mb-6 text-red-500 flex items-center gap-3">
                   <span className="text-3xl">📅</span>
                   Events & Announcements
                 </h3>
                 
-                {/* Scrollable Container */}
                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-4 custom-scrollbar">
                   {eventsData.map((event, index) => (
                     <div
@@ -471,14 +470,12 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Right Side - Scrollable Videos & Highlights */}
               <div className="bg-gradient-to-br from-red-950/20 to-black rounded-2xl p-6 border-2 border-red-500/30">
                 <h3 className="text-2xl font-bold mb-6 text-red-500 flex items-center gap-3">
                   <span className="text-3xl">🎥</span>
                   Videos & Highlights
                 </h3>
                 
-                {/* Scrollable Container */}
                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-4 custom-scrollbar">
                   {eventsVideos.map((video, index) => (
                     <div
@@ -572,7 +569,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* VIEW MORE BUTTON */}
           <div className="text-center mt-12">
             <button
               onClick={() => router.push('/cast')}
@@ -617,7 +613,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* VIEW MORE BUTTON */}
           <div className="text-center mt-12">
             <button
               onClick={() => router.push('/gallery')}
@@ -647,7 +642,6 @@ export default function Home() {
             </div>
 
             <div className="flex justify-center gap-8 flex-wrap">
-              {/* Instagram */}
               <a
                 href="https://www.instagram.com/theparadisemovie/?hl=en"
                 target="_blank"
@@ -662,7 +656,6 @@ export default function Home() {
                 <span className="font-bold text-lg group-hover:text-red-500 transition">Instagram</span>
               </a>
 
-              {/* X (Twitter) */}
               <a
                 href="https://x.com/TheParadiseOffl"
                 target="_blank"
@@ -677,7 +670,6 @@ export default function Home() {
                 <span className="font-bold text-lg group-hover:text-red-500 transition">X (Twitter)</span>
               </a>
 
-              {/* BookMyShow */}
               <a
                 href="https://in.bookmyshow.com/movies/hyderabad/the-paradise/ET00436621"
                 target="_blank"
@@ -772,21 +764,20 @@ export default function Home() {
             <div className="h-0.5 w-32 mx-auto bg-gradient-to-r from-transparent via-red-500 to-transparent rounded-full"></div>
           </div>
           
-          {/* Hype Meter Button */}
           <div className="mb-6">
             <button
               onClick={() => setShowReviews(true)}
-              className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-8 py-4 rounded-full font-bold transition-all duration-300 hover:scale-110 transform shadow-xl hover:shadow-2xl hover:shadow-red-500/50 border-2 border-red-400/50 overflow-hidden"
+              className="group relative inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold transition-all duration-300 hover:scale-110 transform shadow-xl hover:shadow-2xl hover:shadow-red-500/50 border-2 border-red-400/50 overflow-hidden text-sm sm:text-base"
             >
               <span className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
-              <span className="text-2xl relative">🔥</span>
+              <span className="text-xl sm:text-2xl relative">🔥</span>
               <div className="relative text-left">
-                <span className="block text-lg font-black">HYPE METER</span>
+                <span className="block text-base sm:text-lg font-black">HYPE METER</span>
                 <span className="block text-xs font-normal opacity-90">See what fans are saying!</span>
               </div>
-              <div className="relative flex items-center gap-1 bg-black/30 px-3 py-1 rounded-full">
-                <span className="text-yellow-400">⭐</span>
-                <span className="font-black text-lg">{averageRating}</span>
+              <div className="relative flex items-center gap-1 bg-black/30 px-2 sm:px-3 py-1 rounded-full">
+                <span className="text-yellow-400 text-sm sm:text-base">⭐</span>
+                <span className="font-black text-base sm:text-lg">{averageRating}</span>
                 <span className="text-xs opacity-75">/ 5</span>
               </div>
             </button>
@@ -805,99 +796,99 @@ export default function Home() {
       </footer>
 
       {/* ======================================================
-         REVIEWS / HYPE METER MODAL
+         REVIEWS / HYPE METER MODAL - MOBILE OPTIMIZED
       ====================================================== */}
       {showReviews && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-fadeIn overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/95 backdrop-blur-xl animate-fadeIn overflow-y-auto"
           onClick={() => setShowReviews(false)}
         >
           <div 
-            className="bg-gradient-to-br from-red-950/40 to-black rounded-3xl max-w-6xl w-full max-h-[95vh] overflow-hidden border-2 border-red-500/30 shadow-2xl shadow-red-900/50 animate-modalSlideUp my-8"
+            className="bg-gradient-to-br from-red-950/40 to-black rounded-2xl sm:rounded-3xl max-w-6xl w-full max-h-[95vh] overflow-hidden border-2 border-red-500/30 shadow-2xl shadow-red-900/50 animate-modalSlideUp my-4 sm:my-8"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="relative bg-gradient-to-r from-red-600/20 via-orange-600/20 to-red-600/20 border-b border-red-500/30 p-6">
+            <div className="relative bg-gradient-to-r from-red-600/20 via-orange-600/20 to-red-600/20 border-b border-red-500/30 p-4 sm:p-6">
               <button
                 onClick={() => setShowReviews(false)}
-                className="absolute top-4 right-4 w-10 h-10 bg-red-600/80 hover:bg-red-600 rounded-full flex items-center justify-center transition-all backdrop-blur-sm border-2 border-red-400/50 hover:scale-110 hover:rotate-90"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 sm:w-10 sm:h-10 bg-red-600/80 hover:bg-red-600 rounded-full flex items-center justify-center transition-all backdrop-blur-sm border-2 border-red-400/50 hover:scale-110 hover:rotate-90"
               >
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
 
-              <div className="text-center">
-                <h2 className="text-3xl md:text-4xl font-black text-white mb-3 flex items-center justify-center gap-3">
-                  <span className="text-4xl">🔥</span>
-                  HYPE METER
-                  <span className="text-4xl">🔥</span>
+              <div className="text-center pr-8">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2 sm:mb-3 flex items-center justify-center gap-2 sm:gap-3">
+                  <span className="text-3xl sm:text-4xl">🔥</span>
+                  <span>HYPE METER</span>
+                  <span className="text-3xl sm:text-4xl">🔥</span>
                 </h2>
-                <p className="text-gray-300 text-lg mb-4">What are fans saying about THE PARADISE?</p>
+                <p className="text-gray-300 text-sm sm:text-lg mb-3 sm:mb-4 px-2">What are fans saying about THE PARADISE?</p>
                 
-                {/* Average Rating Display */}
-                <div className="flex items-center justify-center gap-6 bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-red-500/30 max-w-2xl mx-auto">
+                {/* Average Rating Display - Mobile Optimized */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 bg-black/30 backdrop-blur-sm rounded-2xl p-3 sm:p-4 border border-red-500/30 max-w-2xl mx-auto">
                   <div className="text-center">
-                    <div className="text-5xl font-black text-white mb-1">{averageRating}</div>
-                    <div className="flex gap-1 justify-center mb-1">
+                    <div className="text-4xl sm:text-5xl font-black text-white mb-1">{averageRating}</div>
+                    <div className="flex gap-0.5 sm:gap-1 justify-center mb-1">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className={`text-2xl ${parseFloat(averageRating) >= star ? 'text-yellow-400' : 'text-gray-600'}`}>
+                        <span key={star} className={`text-lg sm:text-2xl ${parseFloat(averageRating) >= star ? 'text-yellow-400' : 'text-gray-600'}`}>
                           ⭐
                         </span>
                       ))}
                     </div>
-                    <p className="text-gray-400 text-sm">Average Rating</p>
+                    <p className="text-gray-400 text-xs sm:text-sm">Average Rating</p>
                   </div>
-                  <div className="h-16 w-px bg-red-500/30"></div>
+                  <div className="hidden sm:block h-16 w-px bg-red-500/30"></div>
+                  <div className="sm:hidden w-16 h-px bg-red-500/30"></div>
                   <div className="text-center">
-                    <div className="text-5xl font-black text-white mb-1">{reviews.length}</div>
-                    <p className="text-gray-400 text-sm">Total Reviews</p>
+                    <div className="text-4xl sm:text-5xl font-black text-white mb-1">{reviews.length}</div>
+                    <p className="text-gray-400 text-xs sm:text-sm">Total Reviews</p>
                   </div>
-                  <div className="h-16 w-px bg-red-500/30"></div>
+                  <div className="hidden sm:block h-16 w-px bg-red-500/30"></div>
+                  <div className="sm:hidden w-16 h-px bg-red-500/30"></div>
                   <div className="text-center">
-                    <div className="text-5xl font-black bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent mb-1">
+                    <div className="text-4xl sm:text-5xl font-black bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent mb-1">
                       {reviews.filter(r => r.rating >= 4).length}
                     </div>
-                    <p className="text-gray-400 text-sm">Hyped Fans! 🎉</p>
+                    <p className="text-gray-400 text-xs sm:text-sm">Hyped Fans! 🎉</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto max-h-[calc(95vh-280px)]">
-              <div className="grid lg:grid-cols-2 gap-6">
+            {/* Modal Body - Mobile Optimized */}
+            <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(95vh-200px)] sm:max-h-[calc(95vh-280px)]">
+              <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
                 {/* Left Side - Submit Review */}
-                <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-2xl p-6 border-2 border-red-500/30">
-                  <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                    <span className="text-3xl">✍️</span>
+                <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-red-500/30">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
+                    <span className="text-2xl sm:text-3xl">✍️</span>
                     Share Your Hype!
                   </h3>
 
-                  <div className="space-y-4">
-                    {/* Name Input */}
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <label className="block text-gray-300 text-sm font-semibold mb-2">Your Name</label>
+                      <label className="block text-gray-300 text-xs sm:text-sm font-semibold mb-2">Your Name</label>
                       <input
                         type="text"
                         value={userName}
                         onChange={(e) => setUserName(e.target.value)}
                         placeholder="Enter your name..."
-                        className="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition"
+                        className="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition"
                       />
                     </div>
 
-                    {/* Rating Stars */}
                     <div>
-                      <label className="block text-gray-300 text-sm font-semibold mb-2">Your Rating</label>
-                      <div className="flex gap-2">
+                      <label className="block text-gray-300 text-xs sm:text-sm font-semibold mb-2">Your Rating</label>
+                      <div className="flex gap-1 sm:gap-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
                             onClick={() => setUserRating(star)}
                             onMouseEnter={() => setHoverRating(star)}
                             onMouseLeave={() => setHoverRating(0)}
-                            className="text-4xl transition-transform hover:scale-125"
+                            className="text-3xl sm:text-4xl transition-transform hover:scale-125"
                           >
                             <span className={
                               star <= (hoverRating || userRating)
@@ -910,7 +901,7 @@ export default function Home() {
                         ))}
                       </div>
                       {userRating > 0 && (
-                        <p className="text-red-400 text-sm mt-2 font-semibold">
+                        <p className="text-red-400 text-xs sm:text-sm mt-2 font-semibold">
                           {userRating === 5 ? "🔥 Maximum Hype!" : 
                            userRating === 4 ? "🎉 Super Excited!" :
                            userRating === 3 ? "👍 Looking Good!" :
@@ -920,25 +911,23 @@ export default function Home() {
                       )}
                     </div>
 
-                    {/* Review Text */}
                     <div>
-                      <label className="block text-gray-300 text-sm font-semibold mb-2">Your Review</label>
+                      <label className="block text-gray-300 text-xs sm:text-sm font-semibold mb-2">Your Review</label>
                       <textarea
                         value={reviewText}
                         onChange={(e) => setReviewText(e.target.value)}
                         placeholder="What are you most excited about? Share your thoughts..."
-                        rows={5}
-                        className="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition resize-none"
+                        rows={4}
+                        className="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition resize-none"
                       />
                     </div>
 
-                    {/* Submit Button */}
                     <button
                       onClick={submitReview}
-                      className="w-full group relative bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-6 py-4 rounded-xl font-bold transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-red-500/50 border-2 border-red-400/50 overflow-hidden"
+                      className="w-full group relative bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl font-bold transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-red-500/50 border-2 border-red-400/50 overflow-hidden"
                     >
                       <span className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
-                      <span className="relative flex items-center justify-center gap-2 text-lg">
+                      <span className="relative flex items-center justify-center gap-2 text-base sm:text-lg">
                         <span>🚀</span>
                         Submit Your Hype!
                       </span>
@@ -947,36 +936,36 @@ export default function Home() {
                 </div>
 
                 {/* Right Side - Reviews List */}
-                <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-2xl p-6 border-2 border-red-500/30">
-                  <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                    <span className="text-3xl">💬</span>
+                <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-red-500/30">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 flex items-center gap-2">
+                    <span className="text-2xl sm:text-3xl">💬</span>
                     Fan Reviews ({reviews.length})
                   </h3>
 
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="space-y-3 sm:space-y-4 max-h-[400px] sm:max-h-[600px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
                     {reviews.map((review) => (
                       <div
                         key={review.id}
-                        className="bg-black/40 rounded-xl p-4 border border-red-500/20 hover:border-red-500/50 transition-all hover:scale-[1.02] group"
+                        className="bg-black/40 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-red-500/20 hover:border-red-500/50 transition-all hover:scale-[1.02] group"
                       >
-                        <div className="flex items-start gap-3 mb-3">
+                        <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
                           <img
                             src={review.avatar}
                             alt={review.name}
-                            className="w-12 h-12 rounded-full border-2 border-red-500/30 group-hover:border-red-500 transition"
+                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-red-500/30 group-hover:border-red-500 transition flex-shrink-0"
                           />
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <h4 className="font-bold text-white group-hover:text-red-400 transition">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1 gap-2">
+                              <h4 className="font-bold text-sm sm:text-base text-white group-hover:text-red-400 transition truncate">
                                 {review.name}
                               </h4>
-                              <span className="text-xs text-gray-500">{review.date}</span>
+                              <span className="text-xs text-gray-500 whitespace-nowrap">{review.date}</span>
                             </div>
                             <div className="flex gap-0.5 mb-2">
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <span
                                   key={star}
-                                  className={`text-sm ${star <= review.rating ? 'text-yellow-400' : 'text-gray-600'}`}
+                                  className={`text-xs sm:text-sm ${star <= review.rating ? 'text-yellow-400' : 'text-gray-600'}`}
                                 >
                                   ⭐
                                 </span>
@@ -984,14 +973,14 @@ export default function Home() {
                             </div>
                           </div>
                         </div>
-                        <p className="text-gray-300 text-sm leading-relaxed">{review.review}</p>
+                        <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">{review.review}</p>
                       </div>
                     ))}
 
                     {reviews.length === 0 && (
-                      <div className="text-center py-12">
-                        <span className="text-6xl mb-4 block">🎬</span>
-                        <p className="text-gray-400 text-lg">Be the first to share your hype!</p>
+                      <div className="text-center py-8 sm:py-12">
+                        <span className="text-5xl sm:text-6xl mb-3 sm:mb-4 block">🎬</span>
+                        <p className="text-gray-400 text-base sm:text-lg">Be the first to share your hype!</p>
                       </div>
                     )}
                   </div>
@@ -1020,17 +1009,6 @@ export default function Home() {
     }
   }
 
-  @keyframes fadeInScale {
-    from {
-      opacity: 0;
-      transform: scale(0.8);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
   @keyframes slideIn {
     from {
       opacity: 0;
@@ -1045,11 +1023,6 @@ export default function Home() {
   @keyframes gradientShift {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
-  }
-
-  @keyframes gradientText {
-    0%, 100% { background-position: 0% center; }
-    50% { background-position: 200% center; }
   }
 
   @keyframes pulseGlow {
@@ -1080,10 +1053,6 @@ export default function Home() {
     animation: fadeInUp 0.8s ease-out forwards;
   }
 
-  .animate-fadeInScale {
-    animation: fadeInScale 0.8s ease-out forwards;
-  }
-
   .animate-slideIn {
     animation: slideIn 0.5s ease-out forwards;
   }
@@ -1091,11 +1060,6 @@ export default function Home() {
   .animate-gradientShift {
     background-size: 200% 200%;
     animation: gradientShift 6s ease infinite;
-  }
-
-  .animate-gradientText {
-    background-size: 200% auto;
-    animation: gradientText 3s linear infinite;
   }
 
   .animate-pulse-glow {
@@ -1106,9 +1070,8 @@ export default function Home() {
     animation: modalSlideUp 0.3s ease-out forwards;
   }
 
-  /* Custom Scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -1131,7 +1094,7 @@ export default function Home() {
 }
 
 /* ======================================================
-   ENHANCED DETAIL CARD COMPONENT
+   DETAIL CARD COMPONENT
 ====================================================== */
 function DetailCard({ label, value, icon }: { label: string; value: string; icon: string }) {
   return (
@@ -1147,9 +1110,6 @@ function DetailCard({ label, value, icon }: { label: string; value: string; icon
   );
 }
 
-/* ======================================================
-   MENU ITEMS
-====================================================== */
 const menuItems = [
   { id: "home", name: "Home" },
   { id: "story", name: "Story" },
@@ -1159,9 +1119,6 @@ const menuItems = [
   { id: "trailer", name: "Trailer" },
 ];
 
-/* ======================================================
-   MOVIE DETAILS WITH ICONS
-====================================================== */
 const movieDetails = [
   { label: "Genre", value: "Action • Drama", icon: "🎭" },
   { label: "Director", value: "Srikanth Odela", icon: "🎬" },
@@ -1171,9 +1128,6 @@ const movieDetails = [
   { label: "Production", value: "SLV Cinemas", icon: "🎥" },
 ];
 
-/* ======================================================
-   CAST DATA
-====================================================== */
 const cast = [
   { name: "Nani", role: "Jadal", img: "/nani.jpg", position: "object-center" },
   { name: "Kayadu Lohar", role: "Lead Actress", img: "/kayadu.jpg", position: "object-center" },
@@ -1182,9 +1136,6 @@ const cast = [
   { name: "Sampoornesh Babu", role: "Biryani", img: "/sampoornesh.jpg", position: "object-center" },
 ];
 
-/* ======================================================
-   GALLERY IMAGES DATA
-====================================================== */
 const galleryImages = [
   { id: 1, src: "/img1.jpg", alt: "THE PARADISE Gallery Image 1" },
   { id: 2, src: "/img2.jpg", alt: "THE PARADISE Gallery Image 2" },
@@ -1200,9 +1151,6 @@ const galleryImages = [
   { id: 11, src: "/img11.jpg", alt: "THE PARADISE Gallery Image 11" },
 ];
 
-/* ======================================================
-   VIDEO CATEGORIES
-====================================================== */
 const videoCategories = [
   { id: "glimpses", name: "Glimpses", icon: "👁️" },
   { id: "songs", name: "Songs", icon: "🎵" },
@@ -1212,9 +1160,6 @@ const videoCategories = [
   { id: "interviews", name: "Interviews", icon: "🎤" },
 ];
 
-/* ======================================================
-   VIDEO DATA BY CATEGORY
-====================================================== */
 const videoData: Record<string, Array<{ title: string; url: string }>> = {
   glimpses: [
     { title: "Raw Statement - Telugu", url: "https://www.youtube.com/embed/NkZFnpDhdCk" },
@@ -1244,9 +1189,6 @@ const videoData: Record<string, Array<{ title: string; url: string }>> = {
   interviews: [],
 };
 
-/* ======================================================
-   EVENTS DATA - UPDATED FOR AUGUST 21, 2026 RELEASE
-====================================================== */
 const eventsData = [
   {
     icon: "🎵",
@@ -1299,9 +1241,6 @@ const eventsData = [
   }
 ];
 
-/* ======================================================
-   EVENTS VIDEOS DATA
-====================================================== */
 const eventsVideos = [
   {
     title: "Spark of THE PARADISE",
@@ -1335,9 +1274,6 @@ const eventsVideos = [
   }
 ];
 
-/* ======================================================
-   INITIAL REVIEWS DATA
-====================================================== */
 const initialReviews = [
   {
     id: 1,
