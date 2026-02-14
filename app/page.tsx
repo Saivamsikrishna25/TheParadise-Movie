@@ -592,7 +592,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-red-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10"></div>
               <iframe
                 className="w-full h-full"
-                src="https://www.youtube.com/embed/6B2T6prycwk?si=zn7x1qS-a7SXeE01"
+                src="https://www.youtube-nocookie.com/embed/6B2T6prycwk?si=zn7x1qS-a7SXeE01"
                 allowFullScreen
               />
             </div>
@@ -1368,71 +1368,71 @@ const videoData: Record<string, Array<{ title: string; url: string }>> = {
   glimpses: [
     {
       title: "Raw Statement - Telugu",
-      url: "https://www.youtube.com/embed/NkZFnpDhdCk",
+      url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk",
     },
     {
       title: "Raw Statement - Hindi",
-      url: "https://www.youtube.com/embed/namFQ8wFdIA?si=pC6WdOGb2lLQaYMQ",
+      url: "https://www.youtube-nocookie.com/embed/namFQ8wFdIA?si=pC6WdOGb2lLQaYMQ",
     },
     {
       title: "Raw Statement - Tamil",
-      url: "https://www.youtube.com/embed/r2Yf6LLewuc?si=auF9nGxsSvFG1m2H",
+      url: "https://www.youtube-nocookie.com/embed/r2Yf6LLewuc?si=auF9nGxsSvFG1m2H",
     },
     {
       title: "Raw Statement - Malayalam",
-      url: "https://www.youtube.com/embed/4rXvKsrbSAQ?si=jCNIuHmD3Gl0J5pJ",
+      url: "https://www.youtube-nocookie.com/embed/4rXvKsrbSAQ?si=jCNIuHmD3Gl0J5pJ",
     },
     {
       title: "Raw Statement - Kannada",
-      url: "https://www.youtube.com/embed/ETIky7mX2pw?si=cPGcTWHg2ociP8jo",
+      url: "https://www.youtube-nocookie.com/embed/ETIky7mX2pw?si=cPGcTWHg2ociP8jo",
     },
     {
       title: "Raw Statement - English",
-      url: "https://www.youtube.com/embed/6B2T6prycwk?si=WjSuC7qvgtKxPcXk",
+      url: "https://www.youtube-nocookie.com/embed/6B2T6prycwk?si=WjSuC7qvgtKxPcXk",
     },
     {
       title: "Raw Statement - Spanish",
-      url: "https://www.youtube.com/embed/bb-pfn9P9x4?si=w3bQpVFIm9W17Dhj",
+      url: "https://www.youtube-nocookie.com/embed/bb-pfn9P9x4?si=w3bQpVFIm9W17Dhj",
     },
     {
       title: "Raw Statement - Bengali",
-      url: "https://www.youtube.com/embed/W-odwBGjeog?si=am9cYV4ffPly0QLh",
+      url: "https://www.youtube-nocookie.com/embed/W-odwBGjeog?si=am9cYV4ffPly0QLh",
     },
     {
       title: "Spark of THE PARADISE",
-      url: "https://www.youtube.com/embed/Wgy3Lear20s?si=qoFfPfWtgv1hBWGO",
+      url: "https://www.youtube-nocookie.com/embed/Wgy3Lear20s?si=qoFfPfWtgv1hBWGO",
     },
     {
       title: "Onboard of Raghav Juyal",
-      url: "https://www.youtube.com/embed/YPyPmoAXrDg?si=wVioA-lhbr28Z-M6",
+      url: "https://www.youtube-nocookie.com/embed/YPyPmoAXrDg?si=wVioA-lhbr28Z-M6",
     },
     {
       title: "Director Srikanth Odela's Statement",
-      url: "https://www.youtube.com/embed/VUIHLOUZSdM?si=djmHD3meOZzaFqCo",
+      url: "https://www.youtube-nocookie.com/embed/VUIHLOUZSdM?si=djmHD3meOZzaFqCo",
     },
   ],
   songs: [
     {
       title: "THE PARADISE Theme Song",
-      url: "https://www.youtube.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b",
+      url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b",
     },
   ],
   teasers: [
     {
       title: "Official Teaser",
-      url: "https://www.youtube.com/embed/NkZFnpDhdCk",
+      url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk",
     },
   ],
   trailers: [
     {
       title: "Official Trailer",
-      url: "https://www.youtube.com/embed/NkZFnpDhdCk",
+      url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk",
     },
   ],
   osts: [
     {
       title: "THE PARADISE OST",
-      url: "https://www.youtube.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b",
+      url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b",
     },
   ],
   interviews: [],
@@ -1499,32 +1499,32 @@ const eventsData = [
 const eventsVideos = [
   {
     title: "Spark of THE PARADISE",
-    url: "https://www.youtube.com/embed/Wgy3Lear20s",
+    url: "https://www.youtube-nocookie.com/embed/Wgy3Lear20s",
     description: "First glimpse announcement video",
   },
   {
     title: "Raw Statement - Telugu",
-    url: "https://www.youtube.com/embed/NkZFnpDhdCk",
+    url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk",
     description: "Official raw statement release",
   },
   {
     title: "Director's Vision",
-    url: "https://www.youtube.com/embed/VUIHLOUZSdM",
+    url: "https://www.youtube-nocookie.com/embed/VUIHLOUZSdM",
     description: "Srikanth Odela shares his vision",
   },
   {
     title: "Raghav Juyal Joins THE PARADISE",
-    url: "https://www.youtube.com/embed/YPyPmoAXrDg",
+    url: "https://www.youtube-nocookie.com/embed/YPyPmoAXrDg",
     description: "Announcement of antagonist role",
   },
   {
     title: "THE PARADISE Theme Song",
-    url: "https://www.youtube.com/embed/kdARaqbilgo",
+    url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo",
     description: "Official theme music video",
   },
   {
     title: "Raw Statement - Hindi",
-    url: "https://www.youtube.com/embed/namFQ8wFdIA",
+    url: "https://www.youtube-nocookie.com/embed/namFQ8wFdIA",
     description: "Hindi version release",
   },
 ];
