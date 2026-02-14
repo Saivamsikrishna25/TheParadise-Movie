@@ -11,24 +11,6 @@ export default function GalleryPage() {
   const router = useRouter();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  /* ================= KEYBOARD NAVIGATION ================= */
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (selectedIndex === null) return;
-
-      if (e.key === "ArrowLeft") {
-        navigatePrevious();
-      } else if (e.key === "ArrowRight") {
-        navigateNext();
-      } else if (e.key === "Escape") {
-        closeModal();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [selectedIndex]);
-
   /* ================= NAVIGATION FUNCTIONS ================= */
   const navigatePrevious = () => {
     setSelectedIndex((prev) => {
@@ -48,8 +30,26 @@ export default function GalleryPage() {
     setSelectedIndex(null);
   };
 
+  /* ================= KEYBOARD NAVIGATION ================= */
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent): void => {
+      if (selectedIndex === null) return;
+
+      if (e.key === "ArrowLeft") {
+        navigatePrevious();
+      } else if (e.key === "ArrowRight") {
+        navigateNext();
+      } else if (e.key === "Escape") {
+        closeModal();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [selectedIndex, navigatePrevious, navigateNext, closeModal]);
+
   /* ================= DOWNLOAD IMAGE ================= */
-  const downloadImage = (imageSrc: string, imageName: string) => {
+  const downloadImage = (imageSrc: string, imageName: string): void => {
     const link = document.createElement('a');
     link.href = imageSrc;
     link.download = imageName;
