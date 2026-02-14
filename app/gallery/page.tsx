@@ -9,11 +9,11 @@ import { useRouter } from "next/navigation";
 ====================================================== */
 export default function GalleryPage() {
   const router = useRouter();
-  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   /* ================= KEYBOARD NAVIGATION ================= */
   useEffect(() => {
-    const handleKeyPress = (e) => {
+    const handleKeyPress = (e: KeyboardEvent) => {
       if (selectedIndex === null) return;
 
       if (e.key === "ArrowLeft") {
@@ -31,11 +31,17 @@ export default function GalleryPage() {
 
   /* ================= NAVIGATION FUNCTIONS ================= */
   const navigatePrevious = () => {
-    setSelectedIndex((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1));
+    setSelectedIndex((prev) => {
+      if (prev === null) return null;
+      return prev > 0 ? prev - 1 : galleryImages.length - 1;
+    });
   };
 
   const navigateNext = () => {
-    setSelectedIndex((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0));
+    setSelectedIndex((prev) => {
+      if (prev === null) return null;
+      return prev < galleryImages.length - 1 ? prev + 1 : 0;
+    });
   };
 
   const closeModal = () => {
@@ -119,7 +125,7 @@ export default function GalleryPage() {
       {/* ======================================================
          FULL-SIZE IMAGE MODAL WITH ARROW NAVIGATION
       ====================================================== */}
-      {selectedImage && (
+      {selectedImage && selectedIndex !== null && (
         <div className="fixed inset-0 z-50 bg-black/98 backdrop-blur-2xl flex items-center justify-center">
           {/* Close Button */}
           <button
