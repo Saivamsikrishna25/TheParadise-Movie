@@ -182,7 +182,7 @@ export default function GalleryPage() {
           {/* Close Button - Mobile Responsive */}
           <button
             onClick={closeModal}
-            className="fixed top-3 right-3 sm:top-6 sm:right-6 bg-gradient-to-br from-red-600 to-red-800 text-white rounded-full w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-xl sm:text-2xl hover:from-red-500 hover:to-red-700 transition-all duration-300 active:rotate-90 sm:hover:rotate-90 active:scale-95 sm:hover:scale-110 shadow-xl shadow-red-900/50 border-2 border-red-400/30 z-50"
+            className="fixed top-2 right-2 sm:top-6 sm:right-6 bg-gradient-to-br from-red-600 to-red-800 text-white rounded-full w-8 h-8 sm:w-14 sm:h-14 flex items-center justify-center text-lg sm:text-2xl hover:from-red-500 hover:to-red-700 transition-all duration-300 active:rotate-90 sm:hover:rotate-90 active:scale-95 sm:hover:scale-110 shadow-xl shadow-red-900/50 border border-red-400/30 z-50"
           >
             ✕
           </button>
@@ -210,24 +210,24 @@ export default function GalleryPage() {
           {/* Mobile Navigation Arrows - Small, Bottom Corners */}
           <button
             onClick={navigatePrevious}
-            className="md:hidden fixed left-3 bottom-24 sm:bottom-28 bg-gradient-to-br from-red-600/80 to-red-800/80 text-white rounded-full w-12 h-12 flex items-center justify-center active:from-red-500 active:to-red-700 transition-all duration-300 active:scale-95 shadow-xl shadow-red-900/50 border-2 border-red-400/30 z-50"
+            className="md:hidden fixed left-2 bottom-16 sm:bottom-20 bg-gradient-to-br from-red-600/70 to-red-800/70 text-white rounded-full w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center active:from-red-500 active:to-red-700 transition-all duration-300 active:scale-95 shadow-lg shadow-red-900/40 border border-red-400/30 z-50"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
           <button
             onClick={navigateNext}
-            className="md:hidden fixed right-3 bottom-24 sm:bottom-28 bg-gradient-to-br from-red-600/80 to-red-800/80 text-white rounded-full w-12 h-12 flex items-center justify-center active:from-red-500 active:to-red-700 transition-all duration-300 active:scale-95 shadow-xl shadow-red-900/50 border-2 border-red-400/30 z-50"
+            className="md:hidden fixed right-2 bottom-16 sm:bottom-20 bg-gradient-to-br from-red-600/70 to-red-800/70 text-white rounded-full w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center active:from-red-500 active:to-red-700 transition-all duration-300 active:scale-95 shadow-lg shadow-red-900/40 border border-red-400/30 z-50"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
             </svg>
           </button>
 
           {/* Image Container - Mobile Responsive */}
-          <div className="w-full h-full flex items-center justify-center p-4 sm:p-8 pb-40 sm:pb-32 max-w-[95vw] max-h-[95vh]">
+          <div className="w-full h-full flex items-center justify-center p-3 sm:p-8 pb-28 sm:pb-32 max-w-[95vw] max-h-[95vh]">
             <div className="relative w-full h-full flex items-center justify-center">
               <img
                 src={selectedImage.src}
@@ -240,23 +240,23 @@ export default function GalleryPage() {
           {/* Download Button - Mobile Responsive */}
           <button
             onClick={() => downloadImage(selectedImage.src, `paradise-${selectedImage.id}.jpg`)}
-            className="fixed bottom-20 sm:bottom-22 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 active:from-red-700 active:to-red-800 text-white rounded-full px-4 sm:px-6 py-2 flex items-center gap-2 sm:gap-3 font-bold shadow-2xl active:scale-95 sm:hover:scale-105 transition-all duration-300 z-50 border-2 border-red-400/50 text-sm sm:text-base"
+            className="fixed bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 active:from-red-700 active:to-red-800 text-white rounded-full px-3 py-1.5 sm:px-5 sm:py-2 flex items-center gap-1.5 sm:gap-2 font-bold shadow-xl active:scale-95 sm:hover:scale-105 transition-all duration-300 z-50 border border-red-400/50 text-xs sm:text-base"
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            <span className="text-base sm:text-lg">Download</span>
+            <span className="text-sm sm:text-base">Download</span>
           </button>
 
           {/* Image Info - Mobile Responsive */}
-          <div className="fixed bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md border border-red-500/40 rounded-lg sm:rounded-xl px-4 sm:px-10 py-1 sm:py-2 z-50 shadow-2xl max-w-[90vw]">
-            <p className="text-white text-sm sm:text-lg font-bold text-center truncate">{selectedImage.alt}</p>
-            <p className="text-red-400 text-xs sm:text-sm font-semibold text-center">
-              Image {selectedIndex + 1} of {galleryImages.length}
+          <div className="fixed bottom-1 sm:bottom-2 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md border border-red-500/40 rounded-lg sm:rounded-xl px-3 sm:px-8 py-0.5 sm:py-1.5 z-50 shadow-xl max-w-[90vw]">
+            <p className="text-white text-xs sm:text-base font-bold text-center truncate">{selectedImage.alt}</p>
+            <p className="text-red-400 text-[10px] sm:text-sm font-semibold text-center">
+              {selectedIndex + 1} / {galleryImages.length}
             </p>
-            <p className="text-gray-400 text-[10px] sm:text-xs text-center mt-0.5 sm:mt-1">
+            <p className="text-gray-400 text-[9px] sm:text-xs text-center">
               <span className="hidden sm:inline">Use ← → arrows to navigate</span>
-              <span className="sm:hidden">Swipe to navigate</span>
+              <span className="sm:hidden">Swipe left/right</span>
             </p>
           </div>
         </div>
