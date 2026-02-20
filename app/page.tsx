@@ -1556,7 +1556,7 @@ const eventsData = [
   {
     icon: "🎤",
     title: "Anirudh Concert",
-    date: "March 15, 2026",
+    date: "March 21, 2026",
     description:
       "Experience the music of THE PARADISE live with Anirudh performing his compositions.",
     tag: "MUSIC EVENT",

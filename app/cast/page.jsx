@@ -195,109 +195,127 @@ export default function CastPage() {
 
       {/* ======================================================
          CREW MODAL - SHOWS PAST WORKS - MOBILE RESPONSIVE
+         FIX: Separated overlay and modal scroll containers so
+         the X button is never trapped inside a scrollable area
+         and always receives touch/click events correctly.
       ====================================================== */}
       {selectedCrew && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-sm animate-fadeIn overflow-y-auto"
-          onClick={() => setSelectedCrew(null)}
-        >
-          <div 
-            className="bg-gradient-to-br from-red-950/40 to-black rounded-2xl sm:rounded-3xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden border border-red-500/30 sm:border-2 shadow-2xl shadow-red-900/50 animate-modalSlideUp my-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header - Mobile Responsive */}
-            <div className="relative">
-              <div className="aspect-[3/1] sm:aspect-[3/1] relative overflow-hidden">
-                <img
-                  src={selectedCrew.img}
-                  alt={selectedCrew.name}
-                  className={`w-full h-full object-cover ${selectedCrew.imgPosition || 'object-center'} opacity-40 blur-sm scale-110`}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30"></div>
-              </div>
-              
-              <button
-                onClick={() => setSelectedCrew(null)}
-                className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 sm:w-10 sm:h-10 bg-red-600/80 hover:bg-red-600 active:bg-red-600 rounded-full flex items-center justify-center transition-all backdrop-blur-sm border border-red-400/50 sm:border-2 active:scale-95 sm:hover:scale-110"
+        <>
+          {/* Backdrop - full screen, closes modal on tap */}
+          <div
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm animate-fadeIn"
+            onClick={() => setSelectedCrew(null)}
+          />
+
+          {/* Scroll container - centers modal, allows vertical scroll */}
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-3 sm:p-4">
+              {/* Modal panel */}
+              <div
+                className="relative bg-gradient-to-br from-red-950/40 to-black rounded-2xl sm:rounded-3xl max-w-4xl w-full border border-red-500/30 sm:border-2 shadow-2xl shadow-red-900/50 animate-modalSlideUp"
+                onClick={(e) => e.stopPropagation()}
               >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+                {/* Close Button - positioned inside modal panel, always on top */}
+                <button
+                  type="button"
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                    setSelectedCrew(null);
+                  }}
+                  className="absolute top-2 right-2 sm:top-4 sm:right-4 z-[60] w-10 h-10 sm:w-10 sm:h-10 bg-red-600 hover:bg-red-500 active:bg-red-700 rounded-full flex items-center justify-center transition-all border-2 border-red-400/70 touch-manipulation"
+                  aria-label="Close"
+                >
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
 
-              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8">
-                <div className="flex items-end gap-3 sm:gap-4 md:gap-6">
-                  <div className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gradient-to-br from-red-600/40 to-red-800/40 rounded-full flex items-center justify-center border-2 sm:border-4 border-red-500/50 text-2xl sm:text-4xl md:text-5xl backdrop-blur-sm flex-shrink-0">
-                    {selectedCrew.icon}
+                {/* Modal Header */}
+                <div className="relative overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
+                  <div className="aspect-[3/1] relative">
+                    <img
+                      src={selectedCrew.img}
+                      alt={selectedCrew.name}
+                      className={`w-full h-full object-cover ${selectedCrew.imgPosition || 'object-center'} opacity-40 blur-sm scale-110`}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30"></div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-white mb-1 sm:mb-2 truncate">
-                      {selectedCrew.name}
-                    </h2>
-                    <p className="text-red-400 text-sm sm:text-lg md:text-xl font-bold truncate">{selectedCrew.role}</p>
-                    {selectedCrew.description && (
-                      <p className="text-gray-300 text-xs sm:text-sm md:text-base mt-1 sm:mt-2 line-clamp-2">{selectedCrew.description}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Modal Body - Past Works - Mobile Responsive */}
-            <div className="p-4 sm:p-6 md:p-8 overflow-y-auto max-h-[calc(95vh-200px)] sm:max-h-[calc(90vh-300px)]">
-              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-white flex items-center gap-2 sm:gap-3">
-                <span className="text-2xl sm:text-3xl">{selectedCrew.icon}</span>
-                Past Works
-              </h3>
-
-              <div className="space-y-2 sm:space-y-3">
-                {selectedCrew.pastWorks.map((work, index) => (
-                  <div
-                    key={index}
-                    className="bg-gradient-to-r from-red-950/30 to-black/50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-red-500/20 hover:border-red-500/50 transition-all active:scale-[0.98] sm:hover:scale-[1.02] group"
-                  >
-                    <div className="flex items-start justify-between gap-3 sm:gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-red-400 transition">
-                          {work.title}
-                        </h4>
-                        <p className="text-gray-400 text-xs sm:text-sm mt-0.5 sm:mt-1">{work.year}</p>
-                        {work.note && (
-                          <p className="text-red-400 text-xs mt-1 sm:mt-2 font-semibold">{work.note}</p>
-                        )}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8">
+                    <div className="flex items-end gap-3 sm:gap-4 md:gap-6">
+                      <div className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gradient-to-br from-red-600/40 to-red-800/40 rounded-full flex items-center justify-center border-2 sm:border-4 border-red-500/50 text-2xl sm:text-4xl md:text-5xl backdrop-blur-sm flex-shrink-0">
+                        {selectedCrew.icon}
                       </div>
-                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-red-600/20 rounded-lg flex items-center justify-center text-red-400 group-hover:bg-red-600/40 transition">
-                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                        </svg>
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-white mb-1 sm:mb-2 truncate">
+                          {selectedCrew.name}
+                        </h2>
+                        <p className="text-red-400 text-sm sm:text-lg md:text-xl font-bold truncate">{selectedCrew.role}</p>
+                        {selectedCrew.description && (
+                          <p className="text-gray-300 text-xs sm:text-sm md:text-base mt-1 sm:mt-2 line-clamp-2">{selectedCrew.description}</p>
+                        )}
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              {selectedCrew.awards && selectedCrew.awards.length > 0 && (
-                <div className="mt-6 sm:mt-8">
-                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white flex items-center gap-2 sm:gap-3">
-                    <span className="text-xl sm:text-2xl">🏆</span>
-                    Awards & Recognition
+                {/* Modal Body - Past Works */}
+                <div className="p-4 sm:p-6 md:p-8">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-white flex items-center gap-2 sm:gap-3">
+                    <span className="text-2xl sm:text-3xl">{selectedCrew.icon}</span>
+                    Past Works
                   </h3>
-                  <div className="space-y-2">
-                    {selectedCrew.awards.map((award, index) => (
+
+                  <div className="space-y-2 sm:space-y-3">
+                    {selectedCrew.pastWorks.map((work, index) => (
                       <div
                         key={index}
-                        className="bg-gradient-to-r from-yellow-900/20 to-black/50 rounded-lg p-2.5 sm:p-3 border border-yellow-600/20 hover:border-yellow-600/50 transition-all"
+                        className="bg-gradient-to-r from-red-950/30 to-black/50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-red-500/20 hover:border-red-500/50 transition-all active:scale-[0.98] sm:hover:scale-[1.02] group"
                       >
-                        <p className="text-yellow-400 text-xs sm:text-sm font-semibold">{award}</p>
+                        <div className="flex items-start justify-between gap-3 sm:gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-red-400 transition">
+                              {work.title}
+                            </h4>
+                            <p className="text-gray-400 text-xs sm:text-sm mt-0.5 sm:mt-1">{work.year}</p>
+                            {work.note && (
+                              <p className="text-red-400 text-xs mt-1 sm:mt-2 font-semibold">{work.note}</p>
+                            )}
+                          </div>
+                          <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-red-600/20 rounded-lg flex items-center justify-center text-red-400 group-hover:bg-red-600/40 transition">
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
+
+                  {selectedCrew.awards && selectedCrew.awards.length > 0 && (
+                    <div className="mt-6 sm:mt-8">
+                      <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white flex items-center gap-2 sm:gap-3">
+                        <span className="text-xl sm:text-2xl">🏆</span>
+                        Awards & Recognition
+                      </h3>
+                      <div className="space-y-2">
+                        {selectedCrew.awards.map((award, index) => (
+                          <div
+                            key={index}
+                            className="bg-gradient-to-r from-yellow-900/20 to-black/50 rounded-lg p-2.5 sm:p-3 border border-yellow-600/20 hover:border-yellow-600/50 transition-all"
+                          >
+                            <p className="text-yellow-400 text-xs sm:text-sm font-semibold">{award}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* ================= CUSTOM STYLES ================= */}
