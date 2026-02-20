@@ -194,42 +194,44 @@ export default function CastPage() {
       </main>
 
       {/* ======================================================
-         CREW MODAL - SHOWS PAST WORKS - MOBILE RESPONSIVE
-         FIX: Separated overlay and modal scroll containers so
-         the X button is never trapped inside a scrollable area
-         and always receives touch/click events correctly.
+         CREW MODAL - MOBILE FIX:
+         The X button is rendered as a truly independent fixed
+         element at z-[9999], completely outside every scroll
+         container, so mobile touch events always reach it.
       ====================================================== */}
       {selectedCrew && (
         <>
-          {/* Backdrop - full screen, closes modal on tap */}
+          {/* 1. Backdrop — tapping it closes the modal */}
           <div
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm animate-fadeIn"
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm animate-fadeIn"
             onClick={() => setSelectedCrew(null)}
           />
 
-          {/* Scroll container - centers modal, allows vertical scroll */}
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-3 sm:p-4">
-              {/* Modal panel */}
+          {/* 2. X button — fixed to viewport, never inside a scroll container */}
+          <button
+            type="button"
+            onClick={() => setSelectedCrew(null)}
+            className="fixed top-4 right-4 z-[9999] w-11 h-11 bg-red-600 rounded-full flex items-center justify-center border-2 border-red-400 shadow-xl shadow-red-900/60 touch-manipulation select-none"
+            aria-label="Close"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+          >
+            <svg className="w-6 h-6 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* 3. Scrollable area for modal content — sits above backdrop */}
+          <div
+            className="fixed inset-0 z-[200] overflow-y-auto"
+            onClick={() => setSelectedCrew(null)}
+          >
+            {/* Extra top padding so content starts below the X button */}
+            <div className="flex min-h-full items-start justify-center px-3 sm:px-4 pt-16 pb-8">
+              {/* Modal panel — stops click from bubbling to backdrop */}
               <div
                 className="relative bg-gradient-to-br from-red-950/40 to-black rounded-2xl sm:rounded-3xl max-w-4xl w-full border border-red-500/30 sm:border-2 shadow-2xl shadow-red-900/50 animate-modalSlideUp"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Close Button - positioned inside modal panel, always on top */}
-                <button
-                  type="button"
-                  onPointerDown={(e) => {
-                    e.stopPropagation();
-                    setSelectedCrew(null);
-                  }}
-                  className="absolute top-2 right-2 sm:top-4 sm:right-4 z-[60] w-10 h-10 sm:w-10 sm:h-10 bg-red-600 hover:bg-red-500 active:bg-red-700 rounded-full flex items-center justify-center transition-all border-2 border-red-400/70 touch-manipulation"
-                  aria-label="Close"
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-
                 {/* Modal Header */}
                 <div className="relative overflow-hidden rounded-t-2xl sm:rounded-t-3xl">
                   <div className="aspect-[3/1] relative">

@@ -240,7 +240,7 @@ export default function GalleryPage() {
           {/* Download Button - Mobile Responsive */}
           <button
             onClick={() => downloadImage(selectedImage.src, `paradise-${selectedImage.id}.jpg`)}
-            className="fixed bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 active:from-red-700 active:to-red-800 text-white rounded-full px-3 py-1.5 sm:px-5 sm:py-2 flex items-center gap-1.5 sm:gap-2 font-bold shadow-xl active:scale-95 sm:hover:scale-105 transition-all duration-300 z-50 border border-red-400/50 text-xs sm:text-base"
+            className="fixed bottom-12 sm:bottom-22 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 active:from-red-700 active:to-red-800 text-white rounded-full px-3 py-1.5 sm:px-5 sm:py-2 flex items-center gap-1.5 sm:gap-2 font-bold shadow-xl active:scale-95 sm:hover:scale-105 transition-all duration-300 z-50 border border-red-400/50 text-xs sm:text-base"
           >
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -249,7 +249,7 @@ export default function GalleryPage() {
           </button>
 
           {/* Image Info - Mobile Responsive */}
-          <div className="fixed bottom-1 sm:bottom-2 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md border border-red-500/40 rounded-lg sm:rounded-xl px-3 sm:px-8 py-0.5 sm:py-1.5 z-50 shadow-xl max-w-[90vw]">
+          <div className="fixed bottom-1 sm:bottom-0 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md border border-red-500/40 rounded-lg sm:rounded-xl px-3 sm:px-8 py-0.5 sm:py-1.5 z-50 shadow-xl max-w-[90vw]">
             <p className="text-white text-xs sm:text-base font-bold text-center truncate">{selectedImage.alt}</p>
             <p className="text-red-400 text-[10px] sm:text-sm font-semibold text-center">
               {selectedIndex + 1} / {galleryImages.length}
