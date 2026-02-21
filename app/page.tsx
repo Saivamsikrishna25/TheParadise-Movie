@@ -829,7 +829,7 @@ const initialReviews = [
     id: 1,
     name: "BhuviSuri",
     rating: 5,
-    review: "After watching the raw statement, Nani's transformation looks incredible. This is going to be a game-changer for Telugu cinema! 🔥",
+    review: "After watching the raw statement, Nani's transformation looks are incredible. This is going to be a game-changer for Telugu cinema! 🔥",
     date: "Feb 10, 2026",
     avatar: "https://ui-avatars.com/api/?name=Bhuvi+Suri&background=dc2626&color=fff&bold=true",
   },
