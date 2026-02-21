@@ -5,6 +5,77 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 /* ======================================================
+   JSONBIN CONFIG  ← FILL IN THESE TWO VALUES
+   -------------------------------------------------------
+   SETUP (free, 2 minutes):
+   1. Go to https://jsonbin.io  →  Sign up (free)
+   2. Click "Create Bin"  →  paste as initial content:
+        { "reviews": [] }
+      Then click Create.
+   3. Copy the BIN ID from the URL bar
+        e.g.  https://jsonbin.io/v3/b/6650abc123...
+        The part after /b/ is your BIN ID
+   4. Go to Account → API Keys → copy your Master Key
+   5. Paste both below, replacing the placeholder strings
+====================================================== */
+const JSONBIN_BIN_ID  = "https://api.jsonbin.io/v3/b/6999dcd943b1c97be9916ec6";     // e.g. "6650abc1234567890"
+const JSONBIN_API_KEY = "$2a$10$HvhoxCkF0fi8gQn37RUZ3enzpKlosaDM7ilhm0BylEVYkdNwoP0Pi";  // e.g. "$2a$10$abc..."
+
+const BIN_URL = `https://api.jsonbin.io/v3/b/6999dcd943b1c97be9916ec6`;
+
+/* ======================================================
+   TYPES
+====================================================== */
+type ReviewType = {
+  id: number;
+  name: string;
+  rating: number;
+  review: string;
+  date: string;
+  avatar: string;
+};
+
+/* ======================================================
+   CLOUD HELPERS
+====================================================== */
+async function fetchReviewsFromCloud(): Promise<ReviewType[]> {
+  try {
+    const res = await fetch(`${BIN_URL}/latest`, {
+      headers: { "X-Master-Key": JSONBIN_API_KEY },
+    });
+    if (!res.ok) return initialReviews;
+    const data = await res.json();
+    const cloudReviews: ReviewType[] = data?.record?.reviews ?? [];
+    // Always keep initialReviews visible if cloud has nothing
+    if (cloudReviews.length === 0) return initialReviews;
+    // Merge so initialReviews never disappear
+    const cloudIds = new Set(cloudReviews.map((r) => r.id));
+    const merged = [
+      ...cloudReviews,
+      ...initialReviews.filter((r) => !cloudIds.has(r.id)),
+    ];
+    return merged;
+  } catch {
+    return initialReviews;
+  }
+}
+
+async function saveReviewsToCloud(reviews: ReviewType[]): Promise<void> {
+  try {
+    await fetch(BIN_URL, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Master-Key": JSONBIN_API_KEY,
+      },
+      body: JSON.stringify({ reviews }),
+    });
+  } catch {
+    // silently fail
+  }
+}
+
+/* ======================================================
    FADE-IN SECTION COMPONENT
 ====================================================== */
 function FadeInSection({ children }: { children: React.ReactNode }) {
@@ -34,46 +105,41 @@ export default function Home() {
   const router = useRouter();
   const releaseDate = new Date("2026-08-21T00:00:00").getTime();
 
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [isMuted, setIsMuted] = useState(true);
-  const [showNav, setShowNav] = useState(false);
+  const [timeLeft, setTimeLeft]           = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isMuted, setIsMuted]             = useState(true);
+  const [showNav, setShowNav]             = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [showVideos, setShowVideos] = useState(false);
+  const [showVideos, setShowVideos]       = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("glimpses");
-  const [currentPage, setCurrentPage] = useState("home");
-  const [showReviews, setShowReviews] = useState(false);
-  const [userRating, setUserRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [reviewText, setReviewText] = useState("");
-  const [userName, setUserName] = useState("");
-  const [reviews, setReviews] = useState(initialReviews);
-  const [logoError, setLogoError] = useState(false);
-  const audioRef = useRef(null);
-  const videoRefs = useRef<{ [key: string]: HTMLIFrameElement | null }>({});
+  const [currentPage, setCurrentPage]     = useState("home");
+  const [showReviews, setShowReviews]     = useState(false);
+  const [userRating, setUserRating]       = useState(0);
+  const [hoverRating, setHoverRating]     = useState(0);
+  const [reviewText, setReviewText]       = useState("");
+  const [userName, setUserName]           = useState("");
+  const [reviews, setReviews]             = useState<ReviewType[]>(initialReviews);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [submitting, setSubmitting]       = useState(false);
+  const [logoError, setLogoError]         = useState(false);
+  const audioRef   = useRef<HTMLAudioElement>(null);
+  const videoRefs  = useRef<{ [key: string]: HTMLIFrameElement | null }>({});
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
 
-  /* ── Load persisted reviews on mount ── */
+  /* ── Load reviews from cloud whenever Hype Meter opens ── */
   useEffect(() => {
-    const stored = localStorage.getItem("paradise_reviews");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setReviews(parsed);
-        }
-      } catch (_) {}
-    }
-  }, []);
+    if (!showReviews) return;
+    setReviewsLoading(true);
+    fetchReviewsFromCloud().then((fetched) => {
+      setReviews(fetched);
+      setReviewsLoading(false);
+    });
+  }, [showReviews]);
 
-  /* ── Persist reviews whenever they change ── */
-  useEffect(() => {
-    localStorage.setItem("paradise_reviews", JSON.stringify(reviews));
-  }, [reviews]);
-
+  /* ── Video helpers ── */
   const pauseAllVideos = () => {
     Object.values(videoRefs.current).forEach((iframe) => {
-      if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', "*");
       }
     });
     setPlayingVideoId(null);
@@ -81,8 +147,8 @@ export default function Home() {
 
   const handleVideoPlay = (videoId: string) => {
     Object.entries(videoRefs.current).forEach(([id, iframe]) => {
-      if (id !== videoId && iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+      if (id !== videoId && iframe?.contentWindow) {
+        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', "*");
       }
     });
     setPlayingVideoId(videoId);
@@ -90,10 +156,10 @@ export default function Home() {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data && typeof event.data === 'string') {
+      if (event.data && typeof event.data === "string") {
         try {
           const data = JSON.parse(event.data);
-          if (data.event === 'onStateChange' && data.info === 1) {
+          if (data.event === "onStateChange" && data.info === 1) {
             Object.entries(videoRefs.current).forEach(([id, iframe]) => {
               if (iframe?.contentWindow === event.source) handleVideoPlay(id);
             });
@@ -101,18 +167,18 @@ export default function Home() {
         } catch (e) {}
       }
     };
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, []);
 
+  /* ── Countdown ── */
   useEffect(() => {
     const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const diff = releaseDate - now;
+      const diff = releaseDate - Date.now();
       if (diff > 0) {
         setTimeLeft({
-          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+          days:    Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours:   Math.floor((diff / (1000 * 60 * 60)) % 24),
           minutes: Math.floor((diff / (1000 * 60)) % 60),
           seconds: Math.floor((diff / 1000) % 60),
         });
@@ -121,31 +187,29 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  /* ── Sticky nav ── */
   useEffect(() => {
     const handleScroll = () => setShowNav(window.scrollY > 100);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  /* ── Body scroll lock ── */
   useEffect(() => {
-    if (showMobileMenu || showVideos || showReviews) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    document.body.style.overflow = (showMobileMenu || showVideos || showReviews) ? "hidden" : "unset";
     if (!showVideos) pauseAllVideos();
-    return () => { document.body.style.overflow = 'unset'; };
+    return () => { document.body.style.overflow = "unset"; };
   }, [showMobileMenu, showVideos, showReviews]);
 
+  /* ── Helpers ── */
   const addToCalendar = () => {
-    const eventDetails = {
+    const e = {
       text: "THE PARADISE Movie Release",
       dates: "20260821T000000Z/20260821T010000Z",
       details: "THE PARADISE movie release starring Nani, directed by Srikanth Odela",
       location: "Theaters Worldwide",
     };
-    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventDetails.text)}&dates=${eventDetails.dates}&details=${encodeURIComponent(eventDetails.details)}&location=${encodeURIComponent(eventDetails.location)}`;
-    window.open(calendarUrl, "_blank");
+    window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.text)}&dates=${e.dates}&details=${encodeURIComponent(e.details)}&location=${encodeURIComponent(e.location)}`, "_blank");
   };
 
   const scrollToSection = (id: string) => {
@@ -161,32 +225,38 @@ export default function Home() {
     setShowMobileMenu(false);
   };
 
-  const submitReview = () => {
+  /* ── Submit review → save to cloud → visible to EVERYONE ── */
+  const submitReview = async () => {
     if (!userName.trim() || !reviewText.trim() || userRating === 0) {
       alert("Please fill in your name, rating, and review!");
       return;
     }
-    const newReview = {
-      id: Date.now(),
-      name: userName,
+    setSubmitting(true);
+    const newReview: ReviewType = {
+      id:     Date.now(),
+      name:   userName,
       rating: userRating,
       review: reviewText,
-      date: new Date().toLocaleDateString(),
+      date:   new Date().toLocaleDateString(),
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=dc2626&color=fff&bold=true`,
     };
-    setReviews((prev) => {
-      const updated = [newReview, ...prev];
-      localStorage.setItem("paradise_reviews", JSON.stringify(updated));
-      return updated;
-    });
+    // Fetch latest from cloud first so we don't overwrite concurrent submissions
+    const latest  = await fetchReviewsFromCloud();
+    const updated = [newReview, ...latest];
+    await saveReviewsToCloud(updated);
+    setReviews(updated);
     setUserName(""); setReviewText(""); setUserRating(0);
+    setSubmitting(false);
     alert("Thank you for your review! 🎬");
   };
 
   const averageRating = reviews.length > 0
-    ? (reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length).toFixed(1)
+    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
     : "0.0";
 
+  /* ================================================================
+     JSX
+  ================================================================ */
   return (
     <>
       <audio ref={audioRef} loop preload="auto">
@@ -374,7 +444,7 @@ export default function Home() {
                       <div key={index} className="bg-gradient-to-br from-black/50 to-red-950/20 rounded-lg sm:rounded-xl overflow-hidden border border-red-500/20 hover:border-red-500 transition-all duration-300 hover:scale-[1.02] group">
                         <div className="aspect-video relative overflow-hidden">
                           <iframe ref={(el) => { videoRefs.current[videoId] = el; }} className="w-full h-full"
-                            src={`${video.url}?enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
+                            src={`${video.url}?enablejsapi=1&origin=${typeof window !== "undefined" ? window.location.origin : ""}`}
                             allowFullScreen title={video.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
                         </div>
                         <div className="p-3 sm:p-4">
@@ -401,8 +471,8 @@ export default function Home() {
             </div>
             <div className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden border-2 sm:border-4 border-red-500/30 shadow-2xl hover:shadow-red-900/70 transition-all duration-500 hover:border-red-500 hover:scale-105 transform group">
               <div className="absolute inset-0 bg-gradient-to-t from-red-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10"></div>
-              <iframe ref={(el) => { videoRefs.current['main-trailer'] = el; }} className="w-full h-full"
-                src={`https://www.youtube-nocookie.com/embed/6B2T6prycwk?si=zn7x1qS-a7SXeE01&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
+              <iframe ref={(el) => { videoRefs.current["main-trailer"] = el; }} className="w-full h-full"
+                src={`https://www.youtube-nocookie.com/embed/6B2T6prycwk?si=zn7x1qS-a7SXeE01&enablejsapi=1&origin=${typeof window !== "undefined" ? window.location.origin : ""}`}
                 allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
             </div>
           </div>
@@ -501,9 +571,7 @@ export default function Home() {
         </section>
       </FadeInSection>
 
-      {/* ======================================================
-         VIDEOS MODAL
-      ====================================================== */}
+      {/* VIDEOS MODAL */}
       {showVideos && (
         <div className="fixed inset-0 z-[80] bg-black/95 backdrop-blur-xl overflow-y-auto animate-fadeIn">
           <div className="min-h-screen py-6 sm:py-8 px-3 sm:px-4">
@@ -512,30 +580,20 @@ export default function Home() {
                 className="fixed top-4 right-4 sm:top-6 sm:right-6 bg-gradient-to-br from-red-600 to-red-800 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-xl sm:text-2xl hover:from-red-500 hover:to-red-700 transition-all duration-300 z-50 hover:rotate-90 hover:scale-110 shadow-lg shadow-red-900/50 border-2 border-red-400/30">
                 ✕
               </button>
-
               <div className="text-center mb-6 sm:mb-8 md:mb-10 pt-12 sm:pt-0">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-4">Videos & Media</h2>
                 <div className="h-1 w-48 sm:w-56 md:w-64 mx-auto bg-gradient-to-r from-transparent via-red-500 to-transparent rounded-full"></div>
               </div>
-
               <div className="flex gap-2 sm:gap-3 md:gap-4 mb-6 sm:mb-8 md:mb-10 overflow-x-auto pb-1 hide-scrollbar">
                 {videoCategories.map((category, index) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full font-bold transition-all border-2 text-xs sm:text-sm md:text-base whitespace-nowrap animate-fadeInUp ${
-                      selectedCategory === category.id
-                        ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-xl shadow-red-500/50 border-red-400"
-                        : "bg-white/5 text-gray-300 hover:bg-white/10 border-white/20 hover:border-red-500/50"
-                    }`}
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
+                  <button key={category.id} onClick={() => setSelectedCategory(category.id)}
+                    className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full font-bold transition-all border-2 text-xs sm:text-sm md:text-base whitespace-nowrap animate-fadeInUp ${selectedCategory === category.id ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-xl shadow-red-500/50 border-red-400" : "bg-white/5 text-gray-300 hover:bg-white/10 border-white/20 hover:border-red-500/50"}`}
+                    style={{ animationDelay: `${index * 0.1}s` }}>
                     <span className="text-sm sm:text-lg md:text-xl">{category.icon}</span>
                     <span>{category.name}</span>
                   </button>
                 ))}
               </div>
-
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 max-h-[65vh] sm:max-h-[70vh] overflow-y-auto pr-2 sm:pr-4 custom-scrollbar">
                 {(videoData[selectedCategory as keyof typeof videoData] || []).map(
                   (video: { title: string; url: string }, index: number) => {
@@ -548,12 +606,12 @@ export default function Home() {
                         </h3>
                         <div className="aspect-video rounded-lg sm:rounded-xl overflow-hidden border-2 border-red-500/30">
                           <iframe ref={(el) => { videoRefs.current[videoId] = el; }} className="w-full h-full"
-                            src={`${video.url}?enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
+                            src={`${video.url}?enablejsapi=1&origin=${typeof window !== "undefined" ? window.location.origin : ""}`}
                             allowFullScreen title={video.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
                         </div>
                       </div>
                     );
-                  },
+                  }
                 )}
               </div>
             </div>
@@ -592,10 +650,11 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* REVIEWS / HYPE METER MODAL */}
+      {/* HYPE METER MODAL */}
       {showReviews && (
         <div className="fixed inset-0 z-[90] flex items-start sm:items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-xl animate-fadeIn overflow-y-auto" onClick={() => setShowReviews(false)}>
           <div className="bg-gradient-to-br from-red-950/40 to-black rounded-none sm:rounded-2xl md:rounded-3xl max-w-6xl w-full min-h-screen sm:min-h-0 sm:max-h-[95vh] overflow-hidden border-0 sm:border-2 border-red-500/30 shadow-2xl shadow-red-900/50 animate-modalSlideUp" onClick={(e) => e.stopPropagation()}>
+            {/* Modal header */}
             <div className="sticky top-0 z-10 bg-gradient-to-r from-red-600/20 via-orange-600/20 to-red-600/20 border-b border-red-500/30 p-3 sm:p-4 md:p-6">
               <button onClick={() => setShowReviews(false)} className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-red-600/90 hover:bg-red-600 rounded-full flex items-center justify-center transition-all backdrop-blur-sm border-2 border-red-400/50 hover:scale-110 hover:rotate-90 z-20">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -628,14 +687,19 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            {/* Modal body */}
             <div className="p-3 sm:p-4 md:p-6 overflow-y-auto h-[calc(100vh-200px)] sm:h-auto sm:max-h-[calc(95vh-280px)]">
               <div className="grid lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+
+                {/* SUBMIT FORM */}
                 <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 border-2 border-red-500/30">
                   <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2"><span className="text-xl sm:text-2xl md:text-3xl">✍️</span>Share Your Hype!</h3>
                   <div className="space-y-2.5 sm:space-y-3 md:space-y-4">
                     <div>
                       <label className="block text-gray-300 text-[11px] sm:text-xs md:text-sm font-semibold mb-1.5 sm:mb-2">Your Name</label>
-                      <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Enter your name..." className="w-full bg-black/50 border-2 border-red-500/30 rounded-lg sm:rounded-xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition" />
+                      <input type="text" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Enter your name..."
+                        className="w-full bg-black/50 border-2 border-red-500/30 rounded-lg sm:rounded-xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition" />
                     </div>
                     <div>
                       <label className="block text-gray-300 text-[11px] sm:text-xs md:text-sm font-semibold mb-1.5 sm:mb-2">Your Rating</label>
@@ -650,62 +714,80 @@ export default function Home() {
                     </div>
                     <div>
                       <label className="block text-gray-300 text-[11px] sm:text-xs md:text-sm font-semibold mb-1.5 sm:mb-2">Your Review</label>
-                      <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder="What are you most excited about? Share your thoughts..." rows={3} className="w-full bg-black/50 border-2 border-red-500/30 rounded-lg sm:rounded-xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition resize-none" />
+                      <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder="What are you most excited about? Share your thoughts..." rows={3}
+                        className="w-full bg-black/50 border-2 border-red-500/30 rounded-lg sm:rounded-xl px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition resize-none" />
                     </div>
-                    <button onClick={submitReview} className="w-full group relative bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-bold transition-all duration-300 active:scale-95 sm:hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-red-500/50 border-2 border-red-400/50 overflow-hidden">
+                    <button onClick={submitReview} disabled={submitting}
+                      className="w-full group relative bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 rounded-lg sm:rounded-xl font-bold transition-all duration-300 active:scale-95 sm:hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-red-500/50 border-2 border-red-400/50 overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed">
                       <span className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
-                      <span className="relative flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base md:text-lg"><span>🚀</span>Submit Your Hype!</span>
+                      <span className="relative flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base md:text-lg">
+                        <span>{submitting ? "⏳" : "🚀"}</span>
+                        {submitting ? "Saving to cloud..." : "Submit Your Hype!"}
+                      </span>
                     </button>
                   </div>
                 </div>
+
+                {/* REVIEWS LIST */}
                 <div className="bg-gradient-to-br from-red-950/30 to-black/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 border-2 border-red-500/30">
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2"><span className="text-xl sm:text-2xl md:text-3xl">💬</span>Fan Reviews ({reviews.length})</h3>
-                  <div className="space-y-2 sm:space-y-3 md:space-y-4 max-h-[250px] sm:max-h-[400px] md:max-h-[600px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
-                    {reviews.map((review) => (
-                      <div key={review.id} className="bg-black/40 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-red-500/20 hover:border-red-500/50 transition-all active:scale-[0.98] sm:hover:scale-[1.02] group">
-                        <div className="flex items-start gap-2 sm:gap-3 mb-1.5 sm:mb-2 md:mb-3">
-                          <img src={review.avatar} alt={review.name} className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full border-2 border-red-500/30 group-hover:border-red-500 transition flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-0.5 sm:mb-1 gap-1 sm:gap-2">
-                              <h4 className="font-bold text-xs sm:text-sm md:text-base text-white group-hover:text-red-400 transition truncate">{review.name}</h4>
-                              <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap flex-shrink-0">{review.date}</span>
-                            </div>
-                            <div className="flex gap-0.5 mb-1 sm:mb-2">
-                              {[1,2,3,4,5].map((star) => (<span key={star} className={`text-[10px] sm:text-xs md:text-sm ${star <= review.rating ? "text-yellow-400" : "text-gray-600"}`}>⭐</span>))}
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-xl sm:text-2xl md:text-3xl">💬</span>Fan Reviews ({reviews.length})
+                  </h3>
+
+                  {reviewsLoading ? (
+                    <div className="flex flex-col items-center justify-center py-12 gap-4">
+                      <div className="w-10 h-10 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin"></div>
+                      <p className="text-gray-400 text-sm">Loading fan reviews...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 sm:space-y-3 md:space-y-4 max-h-[250px] sm:max-h-[400px] md:max-h-[600px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
+                      {reviews.map((review) => (
+                        <div key={review.id} className="bg-black/40 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-red-500/20 hover:border-red-500/50 transition-all active:scale-[0.98] sm:hover:scale-[1.02] group">
+                          <div className="flex items-start gap-2 sm:gap-3 mb-1.5 sm:mb-2 md:mb-3">
+                            <img src={review.avatar} alt={review.name} className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full border-2 border-red-500/30 group-hover:border-red-500 transition flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-0.5 sm:mb-1 gap-1 sm:gap-2">
+                                <h4 className="font-bold text-xs sm:text-sm md:text-base text-white group-hover:text-red-400 transition truncate">{review.name}</h4>
+                                <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap flex-shrink-0">{review.date}</span>
+                              </div>
+                              <div className="flex gap-0.5 mb-1 sm:mb-2">
+                                {[1,2,3,4,5].map((star) => (<span key={star} className={`text-[10px] sm:text-xs md:text-sm ${star <= review.rating ? "text-yellow-400" : "text-gray-600"}`}>⭐</span>))}
+                              </div>
                             </div>
                           </div>
+                          <p className="text-gray-300 text-[11px] sm:text-xs md:text-sm leading-relaxed">{review.review}</p>
                         </div>
-                        <p className="text-gray-300 text-[11px] sm:text-xs md:text-sm leading-relaxed">{review.review}</p>
-                      </div>
-                    ))}
-                    {reviews.length === 0 && (
-                      <div className="text-center py-6 sm:py-8 md:py-12">
-                        <span className="text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 md:mb-4 block">🎬</span>
-                        <p className="text-gray-400 text-sm sm:text-base md:text-lg">Be the first to share your hype!</p>
-                      </div>
-                    )}
-                  </div>
+                      ))}
+                      {reviews.length === 0 && (
+                        <div className="text-center py-6 sm:py-8 md:py-12">
+                          <span className="text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 md:mb-4 block">🎬</span>
+                          <p className="text-gray-400 text-sm sm:text-base md:text-lg">Be the first to share your hype!</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
+
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* CUSTOM STYLES */}
+      {/* GLOBAL STYLES */}
       <style jsx global>{`
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeIn        { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInUp      { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn       { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        @keyframes pulseGlow { 0%, 100% { filter: drop-shadow(0 0 30px rgba(239, 68, 68, 0.6)); } 50% { filter: drop-shadow(0 0 60px rgba(239, 68, 68, 1)); } }
-        @keyframes modalSlideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseGlow     { 0%, 100% { filter: drop-shadow(0 0 30px rgba(239,68,68,0.6)); } 50% { filter: drop-shadow(0 0 60px rgba(239,68,68,1)); } }
+        @keyframes modalSlideUp  { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
 
-        .animate-fadeIn { animation: fadeIn 0.8s ease-out forwards; }
-        .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
-        .animate-slideIn { animation: slideIn 0.5s ease-out forwards; }
-        .animate-gradientShift { background-size: 200% 200%; animation: gradientShift 6s ease infinite; }
-        .animate-pulse-glow { animation: pulseGlow 3s ease-in-out infinite; }
+        .animate-fadeIn       { animation: fadeIn 0.8s ease-out forwards; }
+        .animate-fadeInUp     { animation: fadeInUp 0.8s ease-out forwards; }
+        .animate-slideIn      { animation: slideIn 0.5s ease-out forwards; }
+        .animate-gradientShift{ background-size: 200% 200%; animation: gradientShift 6s ease infinite; }
+        .animate-pulse-glow   { animation: pulseGlow 3s ease-in-out infinite; }
         .animate-modalSlideUp { animation: modalSlideUp 0.3s ease-out forwards; }
 
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -723,7 +805,9 @@ export default function Home() {
   );
 }
 
-/* DETAIL CARD COMPONENT */
+/* ======================================================
+   DETAIL CARD COMPONENT
+====================================================== */
 function DetailCard({ label, value, icon }: { label: string; value: string; icon: string }) {
   return (
     <div className="bg-gradient-to-br from-red-950/20 to-black rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border-2 border-red-500/20 hover:border-red-500 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/30 group">
@@ -734,102 +818,105 @@ function DetailCard({ label, value, icon }: { label: string; value: string; icon
   );
 }
 
+/* ======================================================
+   STATIC DATA
+====================================================== */
 const menuItems = [
-  { id: "home", name: "Home" },
-  { id: "story", name: "Story" },
-  { id: "cast", name: "Cast" },
+  { id: "home",    name: "Home"    },
+  { id: "story",   name: "Story"   },
+  { id: "cast",    name: "Cast"    },
   { id: "gallery", name: "Gallery" },
-  { id: "videos", name: "Videos" },
+  { id: "videos",  name: "Videos"  },
   { id: "trailer", name: "Trailer" },
 ];
 
 const movieDetails = [
-  { label: "Genre", value: "Action • Drama", icon: "🎭" },
-  { label: "Director", value: "Srikanth Odela", icon: "🎬" },
-  { label: "Language", value: "Telugu", icon: "🗣️" },
-  { label: "Release Date", value: "21 August 2026", icon: "📅" },
-  { label: "Runtime", value: "TBA", icon: "⏱️" },
-  { label: "Production", value: "SLV Cinemas", icon: "🎥" },
+  { label: "Genre",        value: "Action • Drama",  icon: "🎭" },
+  { label: "Director",     value: "Srikanth Odela",  icon: "🎬" },
+  { label: "Language",     value: "Telugu",          icon: "🗣️" },
+  { label: "Release Date", value: "21 August 2026",  icon: "📅" },
+  { label: "Runtime",      value: "TBA",             icon: "⏱️" },
+  { label: "Production",   value: "SLV Cinemas",     icon: "🎥" },
 ];
 
 const cast = [
-  { name: "Nani", role: "Jadal", img: "/nani.jpg", position: "object-center" },
-  { name: "Kayadu Lohar", role: "Lead Actress", img: "/kayadu.jpg", position: "object-center" },
-  { name: "Mohan Babu", role: "Shikanja Malik", img: "/mohanbabu.jpg", position: "object-top" },
-  { name: "Raghav Juyal", role: "Antagonist", img: "/raghav.jpg", position: "object-center" },
-  { name: "Sampoornesh Babu", role: "Biryani", img: "/sampoornesh.jpg", position: "object-center" },
+  { name: "Nani",             role: "Jadal",          img: "/nani.jpg",         position: "object-center" },
+  { name: "Kayadu Lohar",     role: "Lead Actress",   img: "/kayadu.jpg",       position: "object-center" },
+  { name: "Mohan Babu",       role: "Shikanja Malik", img: "/mohanbabu.jpg",    position: "object-top"    },
+  { name: "Raghav Juyal",     role: "Antagonist",     img: "/raghav.jpg",       position: "object-center" },
+  { name: "Sampoornesh Babu", role: "Biryani",        img: "/sampoornesh.jpg",  position: "object-center" },
 ];
 
 const galleryImages = [
-  { id: 1, src: "/img1.jpg", alt: "THE PARADISE Gallery Image 1" },
-  { id: 2, src: "/img2.jpg", alt: "THE PARADISE Gallery Image 2" },
-  { id: 4, src: "/img4.jpg", alt: "THE PARADISE Gallery Image 4" },
+  { id:  1, src: "/img1.jpg",  alt: "THE PARADISE Gallery Image 1"  },
+  { id:  2, src: "/img2.jpg",  alt: "THE PARADISE Gallery Image 2"  },
+  { id:  4, src: "/img4.jpg",  alt: "THE PARADISE Gallery Image 4"  },
   { id: 12, src: "/img12.jpg", alt: "THE PARADISE Gallery Image 12" },
-  { id: 3, src: "/img3.jpg", alt: "THE PARADISE Gallery Image 3" },
-  { id: 5, src: "/img5.jpg", alt: "THE PARADISE Gallery Image 5" },
-  { id: 6, src: "/img6.jpg", alt: "THE PARADISE Gallery Image 6" },
-  { id: 7, src: "/img7.jpg", alt: "THE PARADISE Gallery Image 7" },
-  { id: 8, src: "/img8.jpg", alt: "THE PARADISE Gallery Image 8" },
-  { id: 9, src: "/img9.jpg", alt: "THE PARADISE Gallery Image 9" },
+  { id:  3, src: "/img3.jpg",  alt: "THE PARADISE Gallery Image 3"  },
+  { id:  5, src: "/img5.jpg",  alt: "THE PARADISE Gallery Image 5"  },
+  { id:  6, src: "/img6.jpg",  alt: "THE PARADISE Gallery Image 6"  },
+  { id:  7, src: "/img7.jpg",  alt: "THE PARADISE Gallery Image 7"  },
+  { id:  8, src: "/img8.jpg",  alt: "THE PARADISE Gallery Image 8"  },
+  { id:  9, src: "/img9.jpg",  alt: "THE PARADISE Gallery Image 9"  },
   { id: 10, src: "/img10.jpg", alt: "THE PARADISE Gallery Image 10" },
   { id: 11, src: "/img11.jpg", alt: "THE PARADISE Gallery Image 11" },
 ];
 
 const videoCategories = [
-  { id: "glimpses", name: "Glimpses", icon: "👁️" },
-  { id: "songs", name: "Songs", icon: "🎵" },
-  { id: "teasers", name: "Teasers", icon: "🎬" },
-  { id: "trailers", name: "Trailers", icon: "🎥" },
-  { id: "osts", name: "OSTs", icon: "🎼" },
+  { id: "glimpses",   name: "Glimpses",   icon: "👁️" },
+  { id: "songs",      name: "Songs",      icon: "🎵" },
+  { id: "teasers",    name: "Teasers",    icon: "🎬" },
+  { id: "trailers",   name: "Trailers",   icon: "🎥" },
+  { id: "osts",       name: "OSTs",       icon: "🎼" },
   { id: "interviews", name: "Interviews", icon: "🎤" },
 ];
 
 const videoData: Record<string, Array<{ title: string; url: string }>> = {
   glimpses: [
-    { title: "Raw Statement - Telugu", url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk" },
-    { title: "Raw Statement - Hindi", url: "https://www.youtube-nocookie.com/embed/namFQ8wFdIA?si=pC6WdOGb2lLQaYMQ" },
-    { title: "Raw Statement - Tamil", url: "https://www.youtube-nocookie.com/embed/r2Yf6LLewuc?si=auF9nGxsSvFG1m2H" },
-    { title: "Raw Statement - Malayalam", url: "https://www.youtube-nocookie.com/embed/4rXvKsrbSAQ?si=jCNIuHmD3Gl0J5pJ" },
-    { title: "Raw Statement - Kannada", url: "https://www.youtube-nocookie.com/embed/ETIky7mX2pw?si=cPGcTWHg2ociP8jo" },
-    { title: "Raw Statement - English", url: "https://www.youtube-nocookie.com/embed/6B2T6prycwk?si=WjSuC7qvgtKxPcXk" },
-    { title: "Raw Statement - Spanish", url: "https://www.youtube-nocookie.com/embed/bb-pfn9P9x4?si=w3bQpVFIm9W17Dhj" },
-    { title: "Raw Statement - Bengali", url: "https://www.youtube-nocookie.com/embed/W-odwBGjeog?si=am9cYV4ffPly0QLh" },
-    { title: "Spark of THE PARADISE", url: "https://www.youtube-nocookie.com/embed/Wgy3Lear20s?si=qoFfPfWtgv1hBWGO" },
-    { title: "Onboard of Raghav Juyal", url: "https://www.youtube-nocookie.com/embed/YPyPmoAXrDg?si=wVioA-lhbr28Z-M6" },
-    { title: "Director Srikanth Odela's Statement", url: "https://www.youtube-nocookie.com/embed/VUIHLOUZSdM?si=djmHD3meOZzaFqCo" },
+    { title: "Raw Statement - Telugu",                url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk" },
+    { title: "Raw Statement - Hindi",                 url: "https://www.youtube-nocookie.com/embed/namFQ8wFdIA?si=pC6WdOGb2lLQaYMQ" },
+    { title: "Raw Statement - Tamil",                 url: "https://www.youtube-nocookie.com/embed/r2Yf6LLewuc?si=auF9nGxsSvFG1m2H" },
+    { title: "Raw Statement - Malayalam",             url: "https://www.youtube-nocookie.com/embed/4rXvKsrbSAQ?si=jCNIuHmD3Gl0J5pJ" },
+    { title: "Raw Statement - Kannada",               url: "https://www.youtube-nocookie.com/embed/ETIky7mX2pw?si=cPGcTWHg2ociP8jo" },
+    { title: "Raw Statement - English",               url: "https://www.youtube-nocookie.com/embed/6B2T6prycwk?si=WjSuC7qvgtKxPcXk" },
+    { title: "Raw Statement - Spanish",               url: "https://www.youtube-nocookie.com/embed/bb-pfn9P9x4?si=w3bQpVFIm9W17Dhj" },
+    { title: "Raw Statement - Bengali",               url: "https://www.youtube-nocookie.com/embed/W-odwBGjeog?si=am9cYV4ffPly0QLh" },
+    { title: "Spark of THE PARADISE",                 url: "https://www.youtube-nocookie.com/embed/Wgy3Lear20s?si=qoFfPfWtgv1hBWGO" },
+    { title: "Onboard of Raghav Juyal",               url: "https://www.youtube-nocookie.com/embed/YPyPmoAXrDg?si=wVioA-lhbr28Z-M6" },
+    { title: "Director Srikanth Odela's Statement",   url: "https://www.youtube-nocookie.com/embed/VUIHLOUZSdM?si=djmHD3meOZzaFqCo" },
   ],
-  songs: [{ title: "THE PARADISE Theme Song", url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b" }],
-  teasers: [{ title: "Official Teaser", url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk" }],
-  trailers: [{ title: "Official Trailer", url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk" }],
-  osts: [{ title: "THE PARADISE OST", url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b" }],
+  songs:      [{ title: "THE PARADISE Theme Song", url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b" }],
+  teasers:    [{ title: "Official Teaser",         url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk" }],
+  trailers:   [{ title: "Official Trailer",        url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk" }],
+  osts:       [{ title: "THE PARADISE OST",        url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b" }],
   interviews: [],
 };
 
 const eventsData = [
-  { icon: "🎵", title: "1st Song Release - #AayaSher", date: "Feb 24, 2026", description: "Official release of the first song from THE PARADISE soundtrack.", tag: "ENTERTAINMENT" },
-  { icon: "🎤", title: "Anirudh Concert", date: "March 21, 2026", description: "Experience the music of THE PARADISE live with Anirudh performing his compositions.", tag: "MUSIC EVENT" },
-  { icon: "🎬", title: "World Premiere", date: "August 20, 2026", description: "Join us for the exclusive world premiere of THE PARADISE featuring the cast and crew.", tag: "UPCOMING" },
-  { icon: "🎭", title: "Worldwide Theatrical Release", date: "August 21, 2026", description: "THE PARADISE releases in theaters worldwide. Book your tickets now!", tag: "MAJOR EVENT" },
-  { icon: "🎤", title: "Pre-Release Event", date: "August 15, 2026", description: "Meet the cast and crew at the official pre-release event in Hyderabad.", tag: "UPCOMING" },
-  { icon: "🎥", title: "Behind The Scenes Screening", date: "August 7, 2026", description: "Get an exclusive look at the making of THE PARADISE.", tag: "SPECIAL" },
-  { icon: "🏆", title: "Special Screening for Critics", date: "August 17, 2026", description: "Critics and media get first look at THE PARADISE before public release.", tag: "EXCLUSIVE" },
+  { icon: "🎵", title: "1st Song Release - #AayaSher",    date: "Feb 24, 2026",    description: "Official release of the first song from THE PARADISE soundtrack.",                                  tag: "ENTERTAINMENT" },
+  { icon: "🎤", title: "Anirudh Concert",                 date: "March 21, 2026",  description: "Experience the music of THE PARADISE live with Anirudh performing his compositions.",            tag: "MUSIC EVENT"   },
+  { icon: "🎬", title: "World Premiere",                  date: "August 20, 2026", description: "Join us for the exclusive world premiere of THE PARADISE featuring the cast and crew.",           tag: "UPCOMING"      },
+  { icon: "🎭", title: "Worldwide Theatrical Release",    date: "August 21, 2026", description: "THE PARADISE releases in theaters worldwide. Book your tickets now!",                             tag: "MAJOR EVENT"   },
+  { icon: "🎤", title: "Pre-Release Event",               date: "August 15, 2026", description: "Meet the cast and crew at the official pre-release event in Hyderabad.",                          tag: "UPCOMING"      },
+  { icon: "🎥", title: "Behind The Scenes Screening",     date: "August 7, 2026",  description: "Get an exclusive look at the making of THE PARADISE.",                                            tag: "SPECIAL"       },
+  { icon: "🏆", title: "Special Screening for Critics",   date: "August 17, 2026", description: "Critics and media get first look at THE PARADISE before public release.",                         tag: "EXCLUSIVE"     },
 ];
 
 const eventsVideos = [
-  { title: "Spark of THE PARADISE", url: "https://www.youtube-nocookie.com/embed/Wgy3Lear20s", description: "First glimpse announcement video" },
-  { title: "Raw Statement - Telugu", url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk", description: "Official raw statement release" },
-  { title: "Director's Vision", url: "https://www.youtube-nocookie.com/embed/VUIHLOUZSdM", description: "Srikanth Odela shares his vision" },
-  { title: "Raghav Juyal Joins THE PARADISE", url: "https://www.youtube-nocookie.com/embed/YPyPmoAXrDg", description: "Announcement of antagonist role" },
-  { title: "THE PARADISE Theme Song", url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo", description: "Official music video" },
-  { title: "Raw Statement - Hindi", url: "https://www.youtube-nocookie.com/embed/namFQ8wFdIA", description: "Hindi version release" },
+  { title: "Spark of THE PARADISE",             url: "https://www.youtube-nocookie.com/embed/Wgy3Lear20s", description: "First glimpse announcement video"   },
+  { title: "Raw Statement - Telugu",            url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk", description: "Official raw statement release"      },
+  { title: "Director's Vision",                 url: "https://www.youtube-nocookie.com/embed/VUIHLOUZSdM", description: "Srikanth Odela shares his vision"    },
+  { title: "Raghav Juyal Joins THE PARADISE",   url: "https://www.youtube-nocookie.com/embed/YPyPmoAXrDg", description: "Announcement of antagonist role"     },
+  { title: "THE PARADISE Theme Song",           url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo", description: "Official music video"                },
+  { title: "Raw Statement - Hindi",             url: "https://www.youtube-nocookie.com/embed/namFQ8wFdIA", description: "Hindi version release"               },
 ];
 
-const initialReviews = [
+const initialReviews: ReviewType[] = [
   {
     id: 1,
     name: "BhuviSuri",
     rating: 5,
-    review: "After watching the raw statement, Nani's transformation looks are incredible. This is going to be a game-changer for Telugu cinema! 🔥",
+    review: "After watching the raw statement, Nani's transformation looks incredible. This is going to be a game-changer for Telugu cinema! 🔥",
     date: "Feb 10, 2026",
     avatar: "https://ui-avatars.com/api/?name=Bhuvi+Suri&background=dc2626&color=fff&bold=true",
   },
