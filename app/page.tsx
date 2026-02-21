@@ -52,6 +52,24 @@ export default function Home() {
   const videoRefs = useRef<{ [key: string]: HTMLIFrameElement | null }>({});
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
 
+  /* ── Load persisted reviews on mount ── */
+  useEffect(() => {
+    const stored = localStorage.getItem("paradise_reviews");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setReviews(parsed);
+        }
+      } catch (_) {}
+    }
+  }, []);
+
+  /* ── Persist reviews whenever they change ── */
+  useEffect(() => {
+    localStorage.setItem("paradise_reviews", JSON.stringify(reviews));
+  }, [reviews]);
+
   const pauseAllVideos = () => {
     Object.values(videoRefs.current).forEach((iframe) => {
       if (iframe && iframe.contentWindow) {
@@ -149,14 +167,18 @@ export default function Home() {
       return;
     }
     const newReview = {
-      id: reviews.length + 1,
+      id: Date.now(),
       name: userName,
       rating: userRating,
       review: reviewText,
       date: new Date().toLocaleDateString(),
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=dc2626&color=fff&bold=true`,
     };
-    setReviews([newReview, ...reviews]);
+    setReviews((prev) => {
+      const updated = [newReview, ...prev];
+      localStorage.setItem("paradise_reviews", JSON.stringify(updated));
+      return updated;
+    });
     setUserName(""); setReviewText(""); setUserRating(0);
     alert("Thank you for your review! 🎬");
   };
@@ -481,10 +503,6 @@ export default function Home() {
 
       {/* ======================================================
          VIDEOS MODAL
-         FIX: Category buttons now use a SINGLE horizontal scroll
-         row (overflow-x-auto + flex-shrink-0 + whitespace-nowrap)
-         so all 6 full names show on ONE line on every screen size.
-         Removed the old flex-wrap + .slice(0,4) truncation logic.
       ====================================================== */}
       {showVideos && (
         <div className="fixed inset-0 z-[80] bg-black/95 backdrop-blur-xl overflow-y-auto animate-fadeIn">
@@ -500,7 +518,6 @@ export default function Home() {
                 <div className="h-1 w-48 sm:w-56 md:w-64 mx-auto bg-gradient-to-r from-transparent via-red-500 to-transparent rounded-full"></div>
               </div>
 
-              {/* FIXED: Single horizontal scroll row — no wrapping, full names, hidden scrollbar */}
               <div className="flex gap-2 sm:gap-3 md:gap-4 mb-6 sm:mb-8 md:mb-10 overflow-x-auto pb-1 hide-scrollbar">
                 {videoCategories.map((category, index) => (
                   <button
@@ -691,7 +708,6 @@ export default function Home() {
         .animate-pulse-glow { animation: pulseGlow 3s ease-in-out infinite; }
         .animate-modalSlideUp { animation: modalSlideUp 0.3s ease-out forwards; }
 
-        /* Invisible scrollbar on category pill row */
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
 
@@ -804,7 +820,7 @@ const eventsVideos = [
   { title: "Raw Statement - Telugu", url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk", description: "Official raw statement release" },
   { title: "Director's Vision", url: "https://www.youtube-nocookie.com/embed/VUIHLOUZSdM", description: "Srikanth Odela shares his vision" },
   { title: "Raghav Juyal Joins THE PARADISE", url: "https://www.youtube-nocookie.com/embed/YPyPmoAXrDg", description: "Announcement of antagonist role" },
-  { title: "THE PARADISE Theme Song", url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo", description: "Official theme music video" },
+  { title: "THE PARADISE Theme Song", url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo", description: "Official music video" },
   { title: "Raw Statement - Hindi", url: "https://www.youtube-nocookie.com/embed/namFQ8wFdIA", description: "Hindi version release" },
 ];
 
