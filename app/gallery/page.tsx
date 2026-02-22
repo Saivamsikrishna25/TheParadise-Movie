@@ -281,4 +281,5 @@ const galleryImages = [
   { id: 11, src: "/nani.jpg", alt: "THE PARADISE - JADAL's Journey" },
   { id: 8, src: "/img8.jpg", alt: "THE PARADISE - JADAL ZAMANA" },
   { id: 12, src: "/img12.jpg", alt: "JADAL ZAMANA BEGINS FROM 21-08-2026" },
+  { id: 13, src: "/img13.jpg", alt: "THE PARADISE - 1st single AAYA SHER" },
 ];
