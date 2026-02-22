@@ -645,7 +645,7 @@ export default function Home() {
           <p className="mb-2 text-gray-300 text-xs sm:text-sm">Made with love for THE PARADISE</p>
           <p className="text-[10px] sm:text-xs text-gray-500 mb-3 sm:mb-4">Fan Made Website • Not affiliated with official movie promotions</p>
           <div className="flex justify-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-gray-600 flex-wrap">
-            <span>© 2026 THE PARADISE</span><span>•</span><span>All Rights Reserved</span>
+            <span>© 2026 dhfofnani</span><span>•</span><span>All Rights Reserved</span>
           </div>
         </div>
       </footer>
