@@ -885,7 +885,8 @@ const videoData: Record<string, Array<{ title: string; url: string }>> = {
     { title: "Onboard of Raghav Juyal",               url: "https://www.youtube-nocookie.com/embed/YPyPmoAXrDg?si=wVioA-lhbr28Z-M6" },
     { title: "Director Srikanth Odela's Statement",   url: "https://www.youtube-nocookie.com/embed/VUIHLOUZSdM?si=djmHD3meOZzaFqCo" },
   ],
-  songs:      [{ title: "THE PARADISE Theme Song", url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b" }],
+  songs:      [{ title: "THE PARADISE Theme Song", url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b" },
+               { title: "Aaya Sher - First Song(Telugu)",     url: "https://www.youtube-nocookie.com/embed/iAtoZar5W58?si=7CNqdX2YcZn5FIDW"}],
   teasers:    [{ title: "Official Teaser",         url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk" }],
   trailers:   [{ title: "Official Trailer",        url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk" }],
   osts:       [{ title: "THE PARADISE OST",        url: "https://www.youtube-nocookie.com/embed/kdARaqbilgo?si=SpAulGQn-poFad8b" }],
@@ -893,7 +894,7 @@ const videoData: Record<string, Array<{ title: string; url: string }>> = {
 };
 
 const eventsData = [
-  { icon: "🎵", title: "1st Song Release - #AayaSher",    date: "Feb 24, 2026",    description: "Official release of the first song from THE PARADISE soundtrack.",                                  tag: "ENTERTAINMENT" },
+  // { icon: "🎵", title: "1st Song Release - #AayaSher",    date: "Feb 24, 2026",    description: "Official release of the first song from THE PARADISE soundtrack.",                                  tag: "ENTERTAINMENT" },
   { icon: "🎤", title: "Anirudh Concert",                 date: "March 21, 2026",  description: "Experience the music of THE PARADISE live with Anirudh performing his compositions.",            tag: "MUSIC EVENT"   },
   { icon: "🎬", title: "World Premiere",                  date: "August 20, 2026", description: "Join us for the exclusive world premiere of THE PARADISE featuring the cast and crew.",           tag: "UPCOMING"      },
   { icon: "🎭", title: "Worldwide Theatrical Release",    date: "August 21, 2026", description: "THE PARADISE releases in theaters worldwide. Book your tickets now!",                             tag: "MAJOR EVENT"   },
@@ -903,6 +904,7 @@ const eventsData = [
 ];
 
 const eventsVideos = [
+  { title: "Aaya Sher",             url: "https://www.youtube-nocookie.com/embed/iAtoZar5W58?si=7CNqdX2YcZn5FIDW", description: "Official first song of THE PARADISE" },
   { title: "Spark of THE PARADISE",             url: "https://www.youtube-nocookie.com/embed/Wgy3Lear20s", description: "First glimpse announcement video"   },
   { title: "Raw Statement - Telugu",            url: "https://www.youtube-nocookie.com/embed/NkZFnpDhdCk", description: "Official raw statement release"      },
   { title: "Director's Vision",                 url: "https://www.youtube-nocookie.com/embed/VUIHLOUZSdM", description: "Srikanth Odela shares his vision"    },
